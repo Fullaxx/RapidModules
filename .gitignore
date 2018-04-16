@@ -1,0 +1,15 @@
+*~
+*.bak
+*.rpm
+*.deb
+*.tar
+*.xzm
+*.txz
+*.xz
+*.tbz
+*.bz2
+*.tgz
+*.gz
+*.lz
+*.lzma
+*.7z
