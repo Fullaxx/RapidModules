@@ -3,6 +3,7 @@
 NAME="astyle"
 VERS="3.1"
 PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
 TARBALL="${PKGDIR}/${NAME}_${VERS}_linux.tar.gz"
 TMP="/tmp/${NAME}-mod-$$"
@@ -60,7 +61,7 @@ fi
 find ${TMP} -type f | xargs file | grep ELF | cut -f1 -d: | xargs -r strip --strip-unneeded
 
 # Package up the modules and clean up
-dir2xzm ${TMP} ${PKG}-${ARCH}-num.xzm
+dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
 rm -rf ${NAME}
 rm -rf ${TMP}
 
