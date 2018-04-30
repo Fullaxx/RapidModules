@@ -1,4 +1,6 @@
 #!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
 
 NAME="curlftpfs"
 VERS="0.9.2"

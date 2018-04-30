@@ -1,4 +1,6 @@
 #!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
 
 NAME="astyle"
 VERS="3.1"
