@@ -1,0 +1,112 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+NAME="redis"
+VERS="4.0.9"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${PKG}.tar.gz"
+RLBFDIR=`dirname $0`
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+tar xvf ${TARBALL}
+pushd "${PKG}"
+
+set -e
+
+# Automatically determine the architecture we're building on:
+if [ -z "${ARCH}" ]; then
+  case "$( uname -m )" in
+    #i?86) export ARCH=i486 ;;
+    arm*) export ARCH=arm ;;
+    # Unless ${ARCH} is already set, use uname -m for all other archs:
+       *) export ARCH=$( uname -m ) ;;
+  esac
+fi
+
+LIBDIRSUFFIX=""
+if [ "${ARCH}" = "i486" ]; then
+  SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+elif [ "${ARCH}" = "i686" ]; then
+  SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+elif [ "${ARCH}" = "s390" ]; then
+  SLKCFLAGS="-O2"
+elif [ "${ARCH}" = "x86_64" ]; then
+  SLKCFLAGS="-O2"
+  LIBDIRSUFFIX="64"
+else
+  SLKCFLAGS="-O2"
+fi
+
+# http://lists.slackbuilds.org/pipermail/slackbuilds-users/2013-January/010042.html
+# http://lists.slackbuilds.org/pipermail/slackbuilds-users/2012-September/009230.html
+
+# create the TMP directory, compile the code and install to $TMP
+(
+  unset ARCH
+  make ${MAKEALLCPUS}
+  mkdir -p ${TMP}/usr/bin ${TMP}/usr/doc/${PKG}
+  make install PREFIX=${TMP}/usr
+
+  cd deps/hiredis
+  make ${MAKEALLCPUS} OPTIMIZATION="-O2"
+  make install PREFIX="/usr" LIBRARY_PATH="lib${LIBDIRSUFFIX}" DESTDIR="${TMP}"
+  rm -f ${TMP}/usr/lib${LIBDIRSUFFIX}/libhiredis.a
+  cp -r examples ${TMP}/usr/doc/${PKG}/
+)
+
+# Use sample config and set some sane defaults
+install -D -m 0644 redis.conf ${TMP}/etc/redis/redis.conf
+install -D -m 0644 sentinel.conf ${TMP}/etc/redis/sentinel.conf
+sed -i \
+  -e 's|^daemonize no|daemonize yes|' \
+  -e 's|^dir \.|dir /var/lib/redis|' \
+  -e 's|^logfile ""|logfile /var/log/redis/redis.log|' \
+  -e 's|/var/run/redis_6379.pid|/var/run/redis/6379.pid|' \
+  ${TMP}/etc/redis/redis.conf
+
+# Copy docs and create directories
+cp 00-RELEASENOTES BUGS CONTRIBUTING COPYING MANIFESTO README.md ${TMP}/usr/doc/${PKG}
+mkdir -p ${TMP}/var/lib/redis ${TMP}/var/run/redis ${TMP}/var/log/redis
+chmod 0700 ${TMP}/var/*/redis
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Install init script
+mkdir -p ${TMP}/etc/rc.d
+cat ${RLBFDIR}/RLBFILES/rc.redis.new > ${TMP}/etc/rc.d/rc.redis
+
+# Install logrotate script
+mkdir -p ${TMP}/etc/logrotate.d
+cat ${RLBFDIR}/RLBFILES/redis.logrotate > ${TMP}/etc/logrotate.d/redis
+
+# Make sure this module follows "the rules"
+find ${TMP} -type d | xargs chmod -v 755
+MANDIR=`find ${TMP} -type d -name man`
+if [ x"${MANDIR}" != "x" ]; then
+  find ${MANDIR} -type l -name "*.gz" | xargs -r gunzip -f
+  find ${MANDIR} ! -type l -name "*.gz" | xargs -r gunzip
+fi
+find ${TMP} -type f | xargs file | grep ELF | cut -f1 -d: | xargs -r strip --strip-unneeded
+
+# New Rules: No longer keep .la files
+for PKGLIBDIR in ${TMP}/lib* ${TMP}/usr/lib*; do
+  if [ -d ${PKGLIBDIR} ]; then
+    find ${PKGLIBDIR} -type f -name "*.la" | xargs -r rm
+  fi
+done
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
