@@ -3,6 +3,7 @@
 NAME="vivaldi"
 VERS="1.15.1147.36"
 PKGDIR=${PKGDIR:-.}
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
 # Automatically determine the architecture we're building on:
 if [ -z "${ARCH}" ]; then
