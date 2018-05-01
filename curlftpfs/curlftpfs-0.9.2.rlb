@@ -75,9 +75,16 @@ if [ x"${MANDIR}" != "x" ]; then
 fi
 find ${TMP} -type f | xargs file | grep ELF | cut -f1 -d: | xargs -r strip --strip-unneeded
 
+# New Rules: No longer keep .la files
+for PKGLIBDIR in ${TMP}/lib* ${TMP}/usr/lib*; do
+  if [ -d ${PKGLIBDIR} ]; then
+    find ${PKGLIBDIR} -type f -name "*.la" | xargs -r rm
+  fi
+done
+
 # Package up the modules and clean up
 dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
-rm -rf ${NAME}
+rm -rf ${PKG}
 rm -rf ${TMP}
 
 # EOF

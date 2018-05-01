@@ -92,7 +92,7 @@ done
 
 # Package up the modules and clean up
 dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
-rm -rf ${NAME}
+rm -rf ${PKG}
 rm -rf ${TMP}
 
 # EOF
