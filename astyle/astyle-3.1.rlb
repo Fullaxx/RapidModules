@@ -12,6 +12,8 @@ TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
+set -e
+
 if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
 tar xvf ${TARBALL}
 pushd "${NAME}/build/gcc"
@@ -41,9 +43,9 @@ else
 fi
 
 # create the TMP directory, compile the code and install to ${TMP}
-CFLAGS="${SLKCFLAGS}" make ${MAKEALLCPUS} || exit 1
-mkdir -p ${TMP}/usr/bin ${TMP}/usr/doc/${PKG} || exit 1
-cp bin/astyle ${TMP}/usr/bin || exit 1
+CFLAGS="${SLKCFLAGS}" make ${MAKEALLCPUS}
+mkdir -p ${TMP}/usr/bin ${TMP}/usr/doc/${PKG}
+cp bin/astyle ${TMP}/usr/bin/
 
 # back out and copy this script to the module
 popd

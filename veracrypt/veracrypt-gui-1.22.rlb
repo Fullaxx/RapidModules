@@ -8,6 +8,8 @@ TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
+set -e
+
 # Automatically determine the architecture we're building on:
 if [ -z "${ARCH}" ]; then
   ARCH="$( uname -m )"
