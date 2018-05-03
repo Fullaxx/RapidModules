@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 NAME="veracrypt-gui"
 VERS="1.22"
 PKGREV=${PKGREV:-rev}
@@ -7,8 +9,6 @@ PKGDIR=${PKGDIR:-.}
 TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
-
-set -e
 
 # Automatically determine the architecture we're building on:
 if [ -z "${ARCH}" ]; then

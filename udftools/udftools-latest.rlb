@@ -2,6 +2,8 @@
 # Brett Kuskie
 # fullaxx@gmail.com
 
+set -e
+
 NAME="udftools"
 VERS=`date "+%Y%m%d"`
 PKG="${NAME}-${VERS}"
@@ -9,8 +11,6 @@ PKGREV=${PKGREV:-rev}
 TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
-
-set -e
 
 git clone https://github.com/pali/udftools.git
 pushd ${NAME}

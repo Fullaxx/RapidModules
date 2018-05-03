@@ -2,6 +2,8 @@
 # Brett Kuskie
 # fullaxx@gmail.com
 
+set -e
+
 NAME="udftools"
 VERS="1.0.0b3"
 PKG="${NAME}-${VERS}"
@@ -12,8 +14,6 @@ TARBALL="${PKGDIR}/${PKG}.tar.gz"
 TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
-
-set -e
 
 if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
 tar xvf ${TARBALL}

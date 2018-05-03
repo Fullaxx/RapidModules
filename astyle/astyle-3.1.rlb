@@ -2,6 +2,8 @@
 # Brett Kuskie
 # fullaxx@gmail.com
 
+set -e
+
 NAME="astyle"
 VERS="3.1"
 PKG="${NAME}-${VERS}"
@@ -11,8 +13,6 @@ TARBALL="${PKGDIR}/${NAME}_${VERS}_linux.tar.gz"
 TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
-
-set -e
 
 if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
 tar xvf ${TARBALL}

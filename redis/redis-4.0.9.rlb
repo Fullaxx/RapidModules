@@ -2,6 +2,8 @@
 # Brett Kuskie
 # fullaxx@gmail.com
 
+set -e
+
 NAME="redis"
 VERS="4.0.9"
 PKG="${NAME}-${VERS}"
@@ -16,8 +18,6 @@ if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
 tar xvf ${TARBALL}
 pushd "${PKG}"
-
-set -e
 
 # Automatically determine the architecture we're building on:
 if [ -z "${ARCH}" ]; then
