@@ -1,0 +1,39 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="pastebinit"
+VERS="1.5"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${PKG}.tar.bz2"
+RLBFDIR=`dirname $0`
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+tar xvf ${TARBALL}
+pushd "${PKG}"
+
+# Create the directories and install the files
+mkdir -p ${TMP}/usr/bin ${TMP}/usr/doc/${PKG} ${TMP}/etc
+cp README ${TMP}/usr/doc/${PKG}/
+cp ${RLBFDIR}/RLBFILES/pastebinit_config.txt ${TMP}/usr/doc/${PKG}/
+install -D -m 0755 pastebinit ${TMP}/usr/bin/pastebinit
+cp -r pastebin.d ${TMP}/etc/
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-noarch-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF

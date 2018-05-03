@@ -1,0 +1,13 @@
+CONFIGURATION FILE
+
+If a .pastebinit.xml file is found in the user's home directory,
+pastebinit will use it for its configuration.
+Here's an example file:
+
+<pastebinit>
+<pastebin>https://paste.ubuntu.com</pastebin>
+<author>Stephane Graber</author>
+<jabberid>stgraber@stgraber.org</jabberid>
+<format>text</format>
+</pastebinit>
+
