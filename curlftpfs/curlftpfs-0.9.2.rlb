@@ -60,7 +60,7 @@ make install DESTDIR=${TMP}
 
 # copy the README to docs location
 mkdir -p ${TMP}/usr/doc/${PKG}
-cat README > ${TMP}/usr/doc/${PKG}/README
+cp README ${TMP}/usr/doc/${PKG}/
 
 # back out and copy this script to the module
 popd
