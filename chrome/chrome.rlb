@@ -5,26 +5,17 @@
 set -e
 
 NAME="chrome"
-PKGDIR=${PKGDIR:-.}
 TMP="/tmp/chrome-buildmod-$$"
 SCRIPTDIR=`dirname $0`
 BUILDSCRIPT="google-chrome.SlackBuild-150304"
 
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
-DEBCOUNT=`ls -1 ${PKGDIR}/*.deb | wc -l`
-if [ "${DEBCOUNT}" == "0" ]; then
-  echo "Google Chrome DEB not found in ${PKGDIR}"
+if [ ! -e google-chrome-stable_current_amd64.deb ]; then
+  echo "google-chrome-stable_current_amd64.deb not found in current dir!"
+  echo "download from google.com or use link_latest.sh"
   exit 1
 fi
-
-mkdir ${TMP}
-cp ${SCRIPTDIR}/RLBFILES/slack-desc ${TMP}/
-
-# Get the latest debdate
-( CWD=`pwd`; cd ${PKGDIR}; PKGDATE=`ls -1 google-chrome-*-amd64.deb | awk -F- '{print $3}' | sort -rn | head -n1`; echo ${PKGDATE} > ${CWD}/debvers.txt )
-PKGDATE=`cat debvers.txt`
-rm debvers.txt
 
 # Use the SlackBuild script to convert DEB -> TXZ
 ARCH="x86_64" OUTPUT=`pwd` ${SCRIPTDIR}/${BUILDSCRIPT}
@@ -37,21 +28,20 @@ txz2xzm ${SLACKPKGFILENAME} ${RLPKGFILENAME}
 rm ${SLACKPKGFILENAME}
 
 # Fix the XZM package
-TMPNEXT="/tmp/chromenext-$$"
-mkdir ${TMPNEXT}
-xzm2dir ${RLPKGFILENAME} ${TMPNEXT}
+mkdir ${TMP}
+xzm2dir ${RLPKGFILENAME} ${TMP}
 rm ${RLPKGFILENAME}
 
-if [ ! -e ${TMPNEXT}/usr/bin/google-chrome ]; then ln -s google-chrome-stable ${TMPNEXT}/usr/bin/google-chrome; fi
+if [ ! -e ${TMP}/usr/bin/google-chrome ]; then ln -s google-chrome-stable ${TMP}/usr/bin/google-chrome; fi
 
 # SlackBuild uses a bad forloop that leaves us with a dead link ending in .gz.gz
-rm -f ${TMPNEXT}/usr/man/man1/*.gz.gz
-chmod 0644 ${TMPNEXT}/usr/man/man1/*.1
+rm -f ${TMP}/usr/man/man1/*.gz.gz
+chmod 0644 ${TMP}/usr/man/man1/*.1
 
-if [ -d ${TMPNEXT}/usr/share/doc ]; then mv ${TMPNEXT}/usr/share/doc ${TMPNEXT}/usr/; fi
-for GZFILE in ${TMPNEXT}/usr/doc/google-chrome-stable/*.gz; do gunzip ${GZFILE}; done
+if [ -d ${TMP}/usr/share/doc ]; then mv ${TMP}/usr/share/doc ${TMP}/usr/; fi
+for GZFILE in ${TMP}/usr/doc/google-chrome-stable/*.gz; do gunzip ${GZFILE}; done
 
-dir2xzm ${TMPNEXT} chrome-${GCVERS}-x86_64-1.xzm
-rm -rf ${TMP} ${TMPNEXT} /tmp/package-google-chrome
+dir2xzm ${TMP} chrome-${GCVERS}-x86_64-1.xzm
+rm -rf ${TMP} /tmp/package-google-chrome
 
 # EOF
