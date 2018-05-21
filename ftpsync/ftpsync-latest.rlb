@@ -15,12 +15,14 @@ if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 git clone git://git.savannah.gnu.org/ftpsync
 
 # create the TMP directory and install to $TMP
-mkdir -p ${TMP}/usr/bin ${TMP}/usr/man/man1
-mkdir -p ${TMP}/usr/doc/${NAME} ${TMP}/usr/share/${NAME}/pixmaps
+mkdir -p ${TMP}/usr/bin ${TMP}/usr/man/man1 ${TMP}/usr/doc/${NAME}
+mkdir -p ${TMP}/usr/share/${NAME}/pixmaps ${TMP}/usr/share/icons/hicolor/scalable
+
 install -D -m 0755 ftpsync/src/{ftpsync,ftpsync-ssl} ${TMP}/usr/bin/
 install -D -m 0644 ftpsync/src/ftpsync.1 ${TMP}/usr/man/man1/
 install -D -m 0644 ftpsync/doc/*.txt ${TMP}/usr/doc/${NAME}/
 install -D -m 0644 ftpsync/doc/*.png ${TMP}/usr/share/${NAME}/pixmaps/
+install -D -m 0644 ftpsync/doc/*.svg ${TMP}/usr/share/icons/hicolor/scalable/
 
 # copy this script to the module
 mkdir -p ${TMP}/usr/src/rlb
