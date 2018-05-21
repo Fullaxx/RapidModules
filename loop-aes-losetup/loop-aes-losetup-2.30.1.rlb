@@ -96,7 +96,7 @@ for PKGLIBDIR in ${TMP}/lib* ${TMP}/usr/lib*; do
 done
 
 # Package up the modules and clean up
-dir2xzm ${TMP} loop-aes-losetup-${ARCH}-${PKGREV}.xzm
+dir2xzm ${TMP} loop-aes-losetup-${VERS}-${ARCH}-${PKGREV}.xzm
 rm -rf ${PKG}
 rm -rf ${TMP}
 
