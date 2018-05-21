@@ -1,0 +1,34 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="ftpsync"
+VERS=`date "+%Y%m%d"`
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+git clone git://git.savannah.gnu.org/ftpsync
+
+# create the TMP directory and install to $TMP
+mkdir -p ${TMP}/usr/bin ${TMP}/usr/man/man1
+mkdir -p ${TMP}/usr/doc/${NAME} ${TMP}/usr/share/${NAME}/pixmaps
+install -D -m 0755 ftpsync/src/{ftpsync,ftpsync-ssl} ${TMP}/usr/bin/
+install -D -m 0644 ftpsync/src/ftpsync.1 ${TMP}/usr/man/man1/
+install -D -m 0644 ftpsync/doc/*.txt ${TMP}/usr/doc/${NAME}/
+install -D -m 0644 ftpsync/doc/*.png ${TMP}/usr/share/${NAME}/pixmaps/
+
+# copy this script to the module
+mkdir -p ${TMP}/usr/src/rlb
+install -D -m 0755 $0 ${TMP}/usr/src/rlb
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-noarch-${PKGREV}.xzm
+rm -rf ${NAME}
+rm -rf ${TMP}
+
+# EOF
