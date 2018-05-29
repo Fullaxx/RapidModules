@@ -10,6 +10,7 @@ PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
 TARBALL="${PKGDIR}/${PKG}.tar.gz"
+RLBFDIR=`dirname $0`
 TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
@@ -62,6 +63,7 @@ make install DESTDIR=${TMP}
 mkdir -p ${TMP}/usr/doc
 mv ${TMP}/usr/share/cgdb ${TMP}/usr/doc/
 cp AUTHORS COPYING NEWS README ${TMP}/usr/doc/cgdb/
+cp ${RLBFDIR}/RLBFILES/cgdb.pdf ${TMP}/usr/doc/cgdb/
 rmdir ${TMP}/usr/share
 
 # back out and copy this script to the module
