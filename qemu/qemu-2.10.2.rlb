@@ -125,6 +125,9 @@ make ${MAKEALLCPUS} mandir=/usr/man docdir=/usr/doc/${PKG}
 mkdir ${TMP}
 make install mandir=/usr/man docdir=/usr/doc/${PKG} DESTDIR=${TMP}
 
+# Documentation
+cp CODING_STYLE COPYING* Changelog HACKING LICENSE MAINTAINERS README ${TMP}/usr/doc/${PKG}/
+
 # Remove Empty Directories
 rmdir ${TMP}/var/run
 rmdir ${TMP}/var
