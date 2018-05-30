@@ -1,0 +1,177 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="qemu"
+VERS="2.10.2"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${PKG}.tar.xz"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+# Activate texinfo (to build man pages)
+if [ ! -e /usr/bin/makeinfo -o ! -e /usr/bin/texi2dvi ]; then
+  echo "I need /usr/bin/makeinfo and /usr/bin/texi2dvi from texinfo-*.txz to build man pages"
+  exit 1
+fi
+
+# Activate tetex for tex (to build man pages)
+if [ ! -e /usr/bin/tex ]; then
+  echo "I need /usr/bin/tex from texlive-*.txz to build man pages"
+  exit 1
+fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+tar xvf ${TARBALL}
+pushd "${PKG}"
+
+# gcc 7.3.0 doesnt like the static declaration here
+sed -e 's@static int memfd_create@int memfd_create@' -i util/memfd.c
+
+# Automatically determine the architecture we're building on:
+if [ -z "${ARCH}" ]; then
+  case "$( uname -m )" in
+    #i?86) export ARCH=i486 ;;
+    arm*) export ARCH=arm ;;
+    # Unless ${ARCH} is already set, use uname -m for all other archs:
+       *) export ARCH=$( uname -m ) ;;
+  esac
+fi
+
+LIBDIRSUFFIX=""
+if [ "${ARCH}" = "i486" ]; then
+  SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+  KVMARCH="i386"
+elif [ "${ARCH}" = "i686" ]; then
+  SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+  KVMARCH="i386"
+elif [ "${ARCH}" = "s390" ]; then
+  SLKCFLAGS="-O2"
+elif [ "${ARCH}" = "x86_64" ]; then
+  SLKCFLAGS="-O2 -fPIC"
+  LIBDIRSUFFIX="64"
+  KVMARCH="x86_64"
+else
+  SLKCFLAGS="-O2"
+fi
+
+QEMUTARGETLIST="i386-softmmu,x86_64-softmmu,i386-linux-user,x86_64-linux-user,arm-softmmu,arm-linux-user,armeb-linux-user,m68k-softmmu,m68k-linux-user"
+
+CFLAGS="${SLKCFLAGS}" \
+CXXFLAGS="${SLKCFLAGS}" \
+./configure \
+--prefix=/usr \
+--sysconfdir=/etc \
+--mandir=/usr/man \
+--docdir=/usr/doc/${PKG} \
+--infodir=/usr/info \
+--libdir=/usr/lib${LIBDIRSUFFIX} \
+--localstatedir=/var \
+--disable-debug-info \
+--enable-system \
+--enable-coroutine-pool \
+--enable-modules \
+--enable-tools \
+--enable-docs \
+--enable-curses \
+--enable-gtk \
+--with-gtkabi=3.0 \
+--enable-vte \
+--enable-sdl \
+--with-sdlabi=2.0 \
+--enable-kvm \
+--enable-curl \
+--enable-nettle \
+--enable-gnutls \
+--disable-bluez \
+--enable-lzo \
+--enable-bzip2 \
+--enable-libssh2 \
+--audio-drv-list=alsa,oss,sdl \
+--enable-vnc \
+--enable-vnc-sasl \
+--enable-vnc-jpeg \
+--enable-vnc-png \
+--enable-crypto-afalg \
+--target-list=${QEMUTARGETLIST}
+
+# Other Options
+# --enable-numa (reqs numactl devel)
+# --enable-libusb (reqs libusb devel >= 1.0.13)
+# --enable-tcmalloc
+# --enable-jemalloc
+# --enable-virtfs
+# --enable-seccomp
+# --enable-GlusterFS
+
+if [ -n "${CFGSLEEPREVIEW}" ]; then
+  echo
+  echo "Sleeping ${CFGSLEEPREVIEW} seconds to review ..."
+  sleep ${CFGSLEEPREVIEW}
+fi
+
+# Make these first; otherwise make won't run in parallel.
+# Unnecessary in 2.11.1
+# make config-all-devices.mak config-all-disas.mak
+
+# create the TMP directory, compile the code and install to $TMP
+# make V=1 for verbose
+make ${MAKEALLCPUS} mandir=/usr/man docdir=/usr/doc/${PKG}
+mkdir ${TMP}
+make install mandir=/usr/man docdir=/usr/doc/${PKG} DESTDIR=${TMP}
+
+# Remove Empty Directories
+rmdir ${TMP}/var/run
+rmdir ${TMP}/var
+
+# Remove Unnecessary Locales
+if [ -d ${TMP}/usr/share/locale ]; then rm -rf ${TMP}/usr/share/locale; fi
+
+# create a symlink for qemu-kvm to support aqemu and such frontends
+# even though qemu now has a gtk gui.
+if [ -n ${KVMARCH} ]; then
+  ln -s qemu-system-${KVMARCH} ${TMP}/usr/bin/qemu-kvm
+fi
+
+# Copy some scripts
+cp -a scripts/kvm/kvm_flightrecorder ${TMP}/usr/bin/
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Install some udev rules for /dev/kvm
+mkdir -p ${TMP}/lib/udev/rules.d/
+cat > ${TMP}/lib/udev/rules.d/65-kvm.rules << EOF
+KERNEL=="kvm", GROUP="kvm", MODE="0660"
+KERNEL=="vhost-net", GROUP="kvm", MODE="0660"
+EOF
+
+# Make sure this module follows "the rules"
+find ${TMP} -type d | xargs chmod -v 755
+MANDIR=`find ${TMP} -type d -name man`
+if [ x"${MANDIR}" != "x" ]; then
+  find ${MANDIR} -type l -name "*.gz" | xargs -r gunzip -f
+  find ${MANDIR} ! -type l -name "*.gz" | xargs -r gunzip
+fi
+find ${TMP}/usr/{bin,lib*} -type f -executable | xargs file | grep ELF | cut -f1 -d: | xargs -r strip --strip-unneeded
+
+# New Rules: No longer keep .la files
+for PKGLIBDIR in ${TMP}/lib* ${TMP}/usr/lib*; do
+  if [ -d ${PKGLIBDIR} ]; then
+    find ${PKGLIBDIR} -type f -name "*.la" | xargs -r rm
+  fi
+done
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
