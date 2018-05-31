@@ -1,0 +1,44 @@
+#!/bin/bash
+
+LVPIDFILE="/var/run/libvirtd.pid"
+VLDPIDFILE="/var/run/virtlogd.pid"
+
+case "$1" in
+	start)
+		umount /sys/fs/cgroup/* && umount /sys/fs/cgroup
+		if [ -r ${VLDPIDFILE} ]; then
+			echo "${VLDPIDFILE} exists!"
+		else
+			/usr/sbin/virtlogd >/var/run/libvirt/virtlogd.log 2>&1 &
+		fi
+		if [ -r ${LVPIDFILE} ]; then
+			echo "${LVPIDFILE} exists!"
+		else
+			/usr/sbin/libvirtd -d
+		fi
+		;;
+	stop)
+		if [ -r ${VLDPIDFILE} ]; then
+			kill `cat ${VLDPIDFILE}`
+		else
+			echo "${VLDPIDFILE} does not exist"
+		fi
+		if [ -r ${LVPIDFILE} ]; then
+			kill `cat ${LVPIDFILE}`
+		else
+			echo "${LVPIDFILE} does not exist"
+		fi
+		;;
+	restart)
+		$0 stop
+		$0 start
+		;;
+	status)
+		echo "Checking for libvirtd:"
+		#ps ax | grep libvirtd | cut -f 1 -d ' '
+		ps ax | grep libvirtd | grep -v grep | cut -f2 -d ' '
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart|status}"
+		exit 1
+esac
