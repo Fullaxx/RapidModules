@@ -1,4 +1,5 @@
-https://github.com/kanaka/noVNC
+https://github.com/novnc/noVNC
+https://github.com/novnc/websockify
 
 Use the launch script to start a mini-webserver and the WebSockets proxy (websockify).
 The --vnc option is used to specify the location of a running VNC server:

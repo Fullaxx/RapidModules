@@ -4,7 +4,7 @@
 
 set -e
 
-NAME="noVNC"
+NAME="websockify"
 VERS=`date "+%Y%m%d"`
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
@@ -12,21 +12,19 @@ TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
-git clone https://github.com/novnc/noVNC.git ${PKG}
+git clone https://github.com/novnc/websockify.git ${PKG}
 
 rm -r ${PKG}/.git
 rm -r ${PKG}/.gitignore
 rm -r ${PKG}/.gitmodules
-rm -r ${PKG}/.npmignore
 rm -r ${PKG}/.travis.yml
-find ${PKG} -type f -name .eslintrc -exec rm {} \;
+rm -r ${PKG}/Windows
 
 # create the TMP directory, clone and install to $TMP
 mkdir -p ${TMP}/opt ${TMP}/usr/src/rlb
 cp $0 ${TMP}/usr/src/rlb
-mv ${PKG} ${TMP}/opt
+mv $PKG ${TMP}/opt
 ln -s ${PKG} ${TMP}/opt/${NAME}
-ln -s /opt/websockify ${TMP}/opt/${NAME}/utils/websockify
 
 # Make sure this module follows "the rules"
 find ${TMP} -type d | xargs chmod -v 755
