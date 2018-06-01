@@ -46,8 +46,8 @@ fi
 CFLAGS="$SLKCFLAGS" make ${MAKEALLCPUS}
 mkdir -p ${TMP}/usr/bin ${TMP}/usr/doc/${PKG}
 cp README ${TMP}/usr/doc/${PKG}/
-cp darkhttpd ${TMP}/usr/bin
-strip ${TMP}/usr/bin/darkhttpd
+install -D -m 0755 darkhttpd ${TMP}/usr/bin
+strip ${TMP}/usr/bin/${NAME}
 
 # back out and copy this script to the module
 popd
