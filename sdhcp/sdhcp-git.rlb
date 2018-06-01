@@ -1,0 +1,35 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="sdhcp"
+VERS=`date "+%Y%m%d"`
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+git clone git://git.2f30.org/sdhcp.git
+pushd ${NAME}
+
+# make CPPFLAGS="-O2"
+gcc -O2 sdhcp.c util/*.c -o ${NAME}
+strip ${NAME}
+
+mkdir -p ${TMP}/usr/bin ${TMP}/usr/man/man1 ${TMP}/usr/doc/${PKG}
+install -D -m 0755 ${NAME} ${TMP}/usr/bin/
+install -D -m 0644 ${NAME}.1 ${TMP}/usr/man/man1/
+cp LICENSE TODO ${TMP}/usr/doc/${PKG}/
+
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-noarch-${PKGREV}.xzm
+rm -rf ${TMP}
+
+# EOF
