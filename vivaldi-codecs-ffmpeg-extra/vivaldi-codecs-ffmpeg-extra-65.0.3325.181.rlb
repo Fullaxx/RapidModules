@@ -29,9 +29,9 @@ case "$ARCH" in
           exit 1 ;;
 esac
 
-# Set this to N if you want to keep the original libffmpeg.so
-# while still using the new libffmpeg.so
-REPLACEFFMPEGLIB="Y"
+# Set this to Y if you want to overwrite the original /opt/vivaldi/lib/libffmpeg.so
+# otherwise this will live in /opt/vivaldi
+REPLACEFFMPEGLIB="N"
 DEBFILE="${PKGDIR}/chromium-codecs-ffmpeg-extra_${VERS}-*_${BITS}.deb"
 
 if [ ! -e ${DEBFILE} ]; then echo "${DEBFILE} doesnt exist, exiting..."; exit 1; fi
