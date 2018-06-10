@@ -9,7 +9,7 @@ VERS="9.2.88.1"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
-NVINSTSCRIPT="${PKGDIR}/${NAME}_9.2.88_396.26_linux"
+NVINSTSCRIPT="${PKGDIR}/cuda_9.2.88_396.26_linux"
 TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
