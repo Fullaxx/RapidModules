@@ -1,0 +1,48 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="cuda"
+VERS="9.2.88.1"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+NVINSTSCRIPT="${PKGDIR}/${NAME}_9.2.88_396.26_linux"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${NVINSTSCRIPT} ]; then echo "${NVINSTSCRIPT} doesnt exist, exiting..."; exit 1; fi
+
+CUDATMP="/opt/CUDATMP"
+CUDASILENT="--silent"
+CUDAOVERRIDE="--override"
+CUDANOOGLLIBS="--no-opengl-libs"
+
+# Make our directories
+mkdir ${CUDATMP}
+mkdir -p ${TMP}/opt ${TMP}/usr/src/rlb
+CUDALOC="${TMP}/opt/cuda"
+
+# Install RLB script and the cuda toolkit
+cp $0 ${TMP}/usr/src/rlb/
+${NVINSTSCRIPT} \
+--tmpdir=${CUDATMP} \
+--toolkit \
+--toolkitpath=${CUDALOC} \
+${CUDASILENT} \
+${CUDAOVERRIDE} \
+${CUDANOOGLLIBS}
+
+# Patch cuda 9.2.88 to 9.2.88.1
+${PKGDIR}/cuda_9.2.88.1_linux \
+${CUDASILENT} --accept-eula --installdir=${CUDALOC}
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${NAME}-${VERS}-x86_64-${PKGREV}.xzm
+rm -rf ${TMP}
+rm -rf ${CUDATMP}
+
+# EOF
