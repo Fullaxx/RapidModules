@@ -65,6 +65,11 @@ make install DESTDIR=${TMP}
 mkdir -p ${TMP}/usr/doc/${PKG}
 cp CHANGES DESIGN README TODO ${TMP}/usr/doc/${PKG}/
 
+# This move_pages.2 man page is from 2006
+# the man-pages project has a much newer one from 2017
+mv ${TMP}/usr/man/man2/move_pages.2 ${TMP}/usr/doc/${PKG}/
+rmdir ${TMP}/usr/man/man2
+
 # back out and copy this script to the module
 popd
 mkdir -p ${TMP}/usr/src/rlb
