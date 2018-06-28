@@ -73,6 +73,11 @@ extundelete /dev/sda3 --restore-all
 extundelete /dev/sda3 --restore-all --restore-directory path/of/directory
 extundelete /dev/sda3 --restore-file path/to/deleted/file
 extundelete /dev/sda3 --after 1330520000
+
+# Recover a Deleted Partition Table
+https://interworks.com/blog/smatlock/2015/02/13/restore-damaged-or-corrupted-linux-partition-table/
+https://www.cgsecurity.org/wiki/TestDisk
+https://www.tldp.org/HOWTO/Partition/recovering.html
 EOF
 
 # back out and copy this script to the module
