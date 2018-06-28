@@ -70,6 +70,7 @@ cp LICENSE README ${TMP}/usr/doc/${PKG}/
 cat > ${TMP}/usr/doc/${PKG}/usage.txt << EOF
 # http://extundelete.sourceforge.net/options.html
 extundelete /dev/sda3 --restore-all
+extundelete /dev/sda3 --restore-all --restore-directory path/of/directory
 extundelete /dev/sda3 --restore-file path/to/deleted/file
 extundelete /dev/sda3 --after 1330520000
 EOF
