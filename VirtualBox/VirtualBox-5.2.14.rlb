@@ -1,0 +1,61 @@
+#!/bin/bash
+
+set -e
+
+NAME="VirtualBox"
+VERS="5.2.14"
+PKG="${NAME}-${VERS}"
+PKGDIR=${PKGDIR:-.}
+TMP="/tmp/${NAME}-mod-$$"
+INSTDIR="${TMP}/opt/vbox_installer"
+RCDIR="${TMP}/etc/rc.d"
+
+# Automatically determine the architecture we're building on:
+if [ -z "$ARCH" ]; then
+  ARCH="$( uname -m )"
+fi
+
+case "$ARCH" in
+  x32) VBARCH="x86"; PKGARCH="i686" ;;
+  x86) VBARCH="x86"; PKGARCH="i686" ;;
+  i?86) VBARCH="x86"; PKGARCH="i686" ;;
+  x64) VBARCH="amd64"; PKGARCH="x86_64" ;;
+  x86_64) VBARCH="amd64"; PKGARCH="x86_64" ;;
+  amd64) VBARCH="amd64"; PKGARCH="x86_64" ;;
+  *) echo "Unknown Version: $ARCH"; exit 1 ;;
+esac
+
+VBOXRUNFILE=`ls -1 ${PKGDIR}/${PKG}-*-Linux_${VBARCH}.run`
+VBOXEXTFILE=`ls -1 ${PKGDIR}/Oracle_VM_VirtualBox_Extension_Pack-${VERS}.vbox-extpack`
+
+mkdir -p ${INSTDIR} ${RCDIR}
+cp -v ${VBOXRUNFILE} ${VBOXEXTFILE} ${INSTDIR}/
+
+cat << EOFF > ${INSTDIR}/install_virtualbox.sh
+#!/bin/bash
+
+cd /opt/vbox_installer
+cp -a /etc/rc.d/rc.local /tmp/.temp.rc.local
+./VirtualBox-*.run
+VBoxManage extpack install Oracle_VM_VirtualBox_Extension_Pack-*.vbox-extpack
+cat /tmp/.temp.rc.local > /etc/rc.d/rc.local
+EOFF
+
+cat << EOFF > ${RCDIR}/rc.VirtualBox
+#!/bin/bash
+
+if [ -x /opt/vbox_installer/install_virtualbox.sh ]; then
+  /opt/vbox_installer/install_virtualbox.sh >/dev/null 2>/dev/null &
+fi
+EOFF
+
+# copy this script to the module
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+chmod 0755 ${INSTDIR}/*.run ${INSTDIR}/*.sh ${RCDIR}/rc.*
+
+dir2xzm ${TMP} ${PKG}-${PKGARCH}-num.xzm
+rm -rf ${TMP}
+
+# EOF
