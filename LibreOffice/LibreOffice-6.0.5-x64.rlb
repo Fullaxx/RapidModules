@@ -17,6 +17,9 @@ if [ ! -e ${TARBALL} ]; then echo "$TARBALL doesnt exist, exiting..."; exit 1; f
 tar xvf ${TARBALL}
 pushd ${NAME}_${VERS}*_Linux_${ARCH}_rpm/RPMS
 
+# *** NOTE *** LibreOffice Draw needs libreoffice6.0/program/libsdlo.so
+# *** NOTE *** libsdlo.so needs libavahi-common.so.3 and libavahi-client.so.3
+
 rm *-dict-es-*
 rm *-dict-fr-*
 rm *-gnome-integration-*
