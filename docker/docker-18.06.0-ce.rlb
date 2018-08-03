@@ -1,0 +1,40 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="docker"
+VERS="18.06.0-ce"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${PKG}.tgz"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+mkdir -p ${TMP}/usr ${TMP}/etc/rc.d
+tar xvf ${TARBALL} -C ${TMP}/usr
+mv ${TMP}/usr/docker ${TMP}/usr/bin
+
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+cat << EOF > ${TMP}/etc/rc.d/rc.rl_docker
+#!/bin/bash
+
+# /var/lib/docker should probably be backed by a HD
+# but until the user specifies one, this will get us running
+mkdir /var/lib/docker
+/sbin/mount tmpfs /var/lib/docker -t tmpfs
+EOF
+chmod 0755 ${TMP}/etc/rc.d/rc.rl_docker
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
