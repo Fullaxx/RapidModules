@@ -1,0 +1,39 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="jdkdocs"
+VERS="8u181"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+JDKDOCS="${PKGDIR}/jdk-${VERS}-docs-all.zip"
+if [ ! -e ${JDKDOCS} ]; then
+  echo "${JDKDOCS} does not exist!"
+  exit 1
+fi
+
+JFXDOCS="${PKGDIR}/javafx-${VERS}-apidocs.zip"
+if [ ! -e ${JFXDOCS} ]; then
+  echo "${JFXDOCS} does not exist!"
+  exit 1
+fi
+
+mkdir -p ${TMP}/usr/doc/java8
+unzip ${JDKDOCS} -d ${TMP}/usr/doc/java8/
+mv ${TMP}/usr/doc/java8/docs ${TMP}/usr/doc/java8/jdk_docs
+unzip ${JFXDOCS} -d ${TMP}/usr/doc/java8/
+mv ${TMP}/usr/doc/java8/api ${TMP}/usr/doc/java8/javafx_docs
+
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+dir2xzm ${TMP} ${NAME}-${VERS}-noarch-${PKGREV}.xzm
+rm -rf ${TMP}
+
+# EOF
