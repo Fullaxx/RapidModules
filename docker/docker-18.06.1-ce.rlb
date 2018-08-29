@@ -22,7 +22,7 @@ mv ${TMP}/usr/docker ${TMP}/usr/bin
 mkdir -p ${TMP}/usr/src/rlb
 cp $0 ${TMP}/usr/src/rlb
 
-cat << EOF > ${TMP}/etc/rc.d/rc.rl_docker
+cat << EOFF > ${TMP}/etc/rc.d/rc.rl_docker
 #!/bin/bash
 
 # /var/lib/docker should probably be backed by a HD
@@ -30,11 +30,30 @@ cat << EOF > ${TMP}/etc/rc.d/rc.rl_docker
 mkdir /var/lib/docker
 /sbin/mount tmpfs /var/lib/docker -t tmpfs
 
+# Increase open files limit for which docker image?
+# ulimit -n 16384
+
+# Update certs just in case
+# Why isn't this done on startup?
+# This should probably be moved to a more system level location
+/usr/sbin/update-ca-certificates
+
 # Docker Start
-ulimit -n 16384
-dockerd >/var/log/docker.log 2>&1 &
-EOF
+echo "Starting Docker: /usr/bin/dockerd &"
+/usr/bin/dockerd >/var/log/docker.log 2>&1 &
+EOFF
 chmod 0755 ${TMP}/etc/rc.d/rc.rl_docker
+
+# https://docs.docker.com/registry/insecure/
+# If we dont have certain root certs, allow pull over HTTP
+# If you need this, rename this file to daemon.json
+
+mkdir -p "${TMP}/etc/docker"
+cat << EOFF > ${TMP}/etc/docker/daemon.json.insecure
+{
+  "insecure-registries" : ["registry-1.docker.io"]
+}
+EOFF
 
 # Package up the modules and clean up
 dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
