@@ -5,11 +5,11 @@
 set -e
 
 NAME="cuda"
-VERS="9.2.88.1"
+VERS="9.1.85"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
-NVINSTSCRIPT="${PKGDIR}/cuda_9.2.88_396.26_linux.run"
+NVINSTSCRIPT="${PKGDIR}/cuda_9.1.85_387.26_linux.run"
 TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
@@ -35,10 +35,6 @@ ${NVINSTSCRIPT} \
 ${CUDASILENT} \
 ${CUDAOVERRIDE} \
 ${CUDANOOGLLIBS}
-
-# Patch cuda 9.2.88 to 9.2.88.1
-${PKGDIR}/cuda_9.2.88.1_linux \
-${CUDASILENT} --accept-eula --installdir=${CUDALOC}
 
 # Package up the modules and clean up
 dir2xzm ${TMP} ${NAME}-${VERS}-x86_64-${PKGREV}.xzm
