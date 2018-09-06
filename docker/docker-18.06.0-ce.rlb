@@ -18,7 +18,7 @@ if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1;
 mkdir -p ${TMP}/usr ${TMP}/etc/rc.d
 tar xvf ${TARBALL} -C ${TMP}/usr
 mv ${TMP}/usr/docker ${TMP}/usr/bin
-chown root.root ${TMP}/usr/bin/*
+chown -R root.root ${TMP}/usr/bin
 chmod 0755 ${TMP}/usr/bin/*
 
 mkdir -p ${TMP}/usr/src/rlb
