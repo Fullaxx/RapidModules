@@ -19,7 +19,7 @@ mkdir -p ${TMP}/opt ${TMP}/usr/bin
 tar xvf ${TARBALL} -C ${TMP}/opt
 mv ${TMP}/opt/VSCode-linux-x64 ${TMP}/opt/vscode
 
-ln -s ${TMP}/opt/vscode/bin/code ${TMP}/usr/bin/vscode
+ln -s /opt/vscode/bin/code ${TMP}/usr/bin/vscode
 
 # Package up the modules and clean up
 dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
