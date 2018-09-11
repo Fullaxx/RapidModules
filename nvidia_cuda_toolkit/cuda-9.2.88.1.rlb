@@ -40,6 +40,14 @@ ${CUDANOOGLLIBS}
 ${PKGDIR}/cuda_9.2.88.1_linux \
 ${CUDASILENT} --accept-eula --installdir=${CUDALOC}
 
+mkdir -p ${TMP}/etc/profile.d
+cat << EOFF > ${TMP}/etc/profile.d/rl_cuda.sh
+#!/bin/sh
+
+export PATH="${PATH}:/opt/cuda/bin"
+EOFF
+chmod 0755 ${TMP}/etc/profile.d/rl_cuda.sh
+
 # Package up the modules and clean up
 dir2xzm ${TMP} ${NAME}-${VERS}-x86_64-${PKGREV}.xzm
 rm -rf ${TMP}
