@@ -1,0 +1,56 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="java"
+VERS="8u181"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+RLBFDIR=`dirname $0`
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${PKGDIR}/jdk-${VERS}-linux-x64.tar.gz ]; then echo "${PKGDIR}/jdk-${VERS}-linux-x64.tar.gz doesnt exist, exiting..."; exit 1; fi
+if [ ! -e ${PKGDIR}/jre-${VERS}-linux-x64.tar.gz ]; then echo "${PKGDIR}/jre-${VERS}-linux-x64.tar.gz doesnt exist, exiting..."; exit 1; fi
+if [ ! -e ${PKGDIR}/jdk-${VERS}-linux-i586.tar.gz ]; then echo "${PKGDIR}/jdk-${VERS}-linux-i586.tar.gz doesnt exist, exiting..."; exit 1; fi
+if [ ! -e ${PKGDIR}/jre-${VERS}-linux-i586.tar.gz ]; then echo "${PKGDIR}/jre-${VERS}-linux-i586.tar.gz doesnt exist, exiting..."; exit 1; fi
+
+mkdir ${TMP}
+
+cp -ar ${RLBFDIR}/RLBFILES/* ${TMP}/
+chmod 0700 ${TMP}/java.SlackBuild
+chown -R root.root ${TMP}/
+
+javaconvert()
+{
+  NAME="$1"
+  ARCH="$2"
+  INFNAME="${NAME}-${VERS}-linux-${ARCH}.tar.gz"
+  OUTFNAME="${NAME}-${VERS}-${ARCH}-1.txz"
+  XZMFNAME="${NAME}-${VERS}-${ARCH}-${PKGREV}.xzm"
+  cp ${PKGDIR}/${INFNAME} ${TMP}/
+  pushd ${TMP}
+  echo "Running ./java.SlackBuild on ${INFNAME} ..."
+  ./java.SlackBuild >/dev/null 2>&1
+  rm -r /tmp/package-java
+  rm ${TMP}/${INFNAME}
+  if [ "${OUTFNAME}" == "${NAME}-${VERS}-x64-1.txz" ]; then OUTFNAME="${NAME}-${VERS}-x86_64-1.txz"; fi
+  txz2xzm /tmp/${OUTFNAME} ${TMP}/${XZMFNAME} >/dev/null
+  rm /tmp/${OUTFNAME}
+  popd
+}
+
+javaconvert jdk x64
+javaconvert jre x64
+javaconvert jdk i586
+javaconvert jre i586
+
+rename x64 x86_64 ${TMP}/*.xzm
+mv ${TMP}/*.xzm ./
+rm -rf ${TMP}
+
+# EOF
