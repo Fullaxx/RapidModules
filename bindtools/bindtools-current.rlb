@@ -1,0 +1,52 @@
+#!/bin/bash
+
+set -e
+
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+# Automatically determine the architecture we're building on:
+if [ -z "$ARCH" ]; then
+  ARCH="$( uname -m )"
+fi
+
+case "$ARCH" in
+  x86) SLACKREPO="Slack32-current/slackware"; LIBDIR="lib" ;;
+  i?86) SLACKREPO="Slack32-current/slackware"; LIBDIR="lib" ;;
+  x64) SLACKREPO="Slack64-current/slackware64"; LIBDIR="lib64" ;;
+  x86_64) SLACKREPO="Slack64-current/slackware64"; LIBDIR="lib64" ;;
+  amd64) SLACKREPO="Slack64-current/slackware64"; LIBDIR="lib64" ;;
+  *) echo "Unknown Version: $ARCH"; exit 1 ;;
+esac
+
+SLACKWAREDIR="/opt/RL/packages/slackware/${SLACKREPO}"
+TARBALL=`ls -1 ${SLACKWAREDIR}/n/bind-*.txz`
+PKG=`basename ${TARBALL} | sed -e 's/txz/xzm/' | sed -e 's/bind/bindtools/'`
+
+#echo "TARBALL: $TARBALL"
+#echo "PKG: $PKG"
+#exit 0
+
+if [ -e ${PKG} ]; then
+	echo "$PKG exists! Please tell me where to find bind"
+	exit 1
+fi
+
+SPDIR="/tmp/bindspkg-$$"
+
+mkdir ${SPDIR}
+tar xf ${TARBALL} -C ${SPDIR}
+
+rm -r ${SPDIR}/usr/man/man[358]
+
+rm -r ${SPDIR}/{etc,install,var}
+rm -r ${SPDIR}/usr/{doc,include,sbin}
+
+for MP in ${SPDIR}/usr/man/man?/*.gz; do gunzip ${MP}; done
+
+rm ${SPDIR}/usr/bin/named-rrchecker
+rm ${SPDIR}/usr/bin/*-config*
+rm ${SPDIR}/usr/man/man?/*-config.sh.?
+rm ${SPDIR}/usr/man/man?/named-rrchecker.?
+
+dir2xzm ${SPDIR} ${PKG}
+rm -r ${SPDIR}
