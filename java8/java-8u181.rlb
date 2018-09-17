@@ -41,6 +41,16 @@ javaconvert()
   if [ "${OUTFNAME}" == "${NAME}-${VERS}-x64-1.txz" ]; then OUTFNAME="${NAME}-${VERS}-x86_64-1.txz"; fi
   txz2xzm /tmp/${OUTFNAME} ${TMP}/${XZMFNAME} >/dev/null
   rm /tmp/${OUTFNAME}
+
+## Why are all the directories sticky??
+  mkdir fs
+  xzm2dir ${XZMFNAME} fs
+  rm ${XZMFNAME}
+  find fs -type d -exec chmod -s {} \;
+  dir2xzm fs ${XZMFNAME}
+  rm -rf fs
+#######################################
+
   popd
 }
 
