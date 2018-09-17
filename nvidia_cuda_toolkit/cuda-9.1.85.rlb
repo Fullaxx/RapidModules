@@ -16,7 +16,7 @@ if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
 if [ ! -e ${NVINSTSCRIPT} ]; then echo "${NVINSTSCRIPT} doesnt exist, exiting..."; exit 1; fi
 
-CUDATMP="/opt/CUDATMP"
+CUDATMP=${CUDATMP:-/tmp/CUDATMP}
 CUDASILENT="--silent"
 CUDAOVERRIDE="--override"
 CUDANOOGLLIBS="--no-opengl-libs"
@@ -40,9 +40,16 @@ mkdir -p ${TMP}/etc/profile.d
 cat << EOFF > ${TMP}/etc/profile.d/rl_cuda.sh
 #!/bin/sh
 
-export PATH="${PATH}:/opt/cuda/bin"
+export PATH="\${PATH}:/opt/cuda/bin"
 EOFF
 chmod 0755 ${TMP}/etc/profile.d/rl_cuda.sh
+
+# Fix permissions
+find ${TMP} -type d -exec chmod -s {} \;
+find ${TMP}/opt/cuda/include -type f -exec chmod 0644 {} \;
+
+# Let's see what happens with GNU GCC 8
+sed -e 's@^#error -- unsupported GNU@//#error -- unsupported GNU@' -i ${TMP}/opt/cuda/include/crt/host_config.h
 
 # Package up the modules and clean up
 dir2xzm ${TMP} ${NAME}-${VERS}-x86_64-${PKGREV}.xzm
