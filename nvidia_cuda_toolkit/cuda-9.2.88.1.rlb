@@ -62,6 +62,13 @@ ROOT="${TMP}/opt/gcc7/" installpkg ${PKGDIR}/gcc-g++-7.3.0-x86_64-1.txz
 ln -s /opt/gcc7/usr/bin/gcc ${TMP}/opt/cuda/bin/gcc
 ln -s /opt/gcc7/usr/bin/g++ ${TMP}/opt/cuda/bin/g++
 
+# Make sure the system knows where to find cuda libs
+mkdir -p ${TMP}/etc/ld.so.conf.d/
+cat << EOFF > ${TMP}/etc/ld.so.conf.d/cuda-x86_64.conf
+/opt/cuda/lib64
+EOFF
+chmod 0644 ${TMP}/etc/ld.so.conf.d/cuda-x86_64.conf
+
 # Package up the modules and clean up
 dir2xzm ${TMP} ${NAME}-${VERS}-x86_64-${PKGREV}.xzm
 rm -rf ${TMP}
