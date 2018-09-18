@@ -51,6 +51,13 @@ find ${TMP}/opt/cuda/include -type f -exec chmod 0644 {} \;
 # Let's see what happens with GNU GCC 8
 # sed -e 's@^#error -- unsupported GNU@//#error -- unsupported GNU@' -i ${TMP}/opt/cuda/include/crt/host_config.h
 
+# Can we use GCC 7 this way?
+mkdir -p ${TMP}/opt/gcc7
+ROOT="${TMP}/opt/gcc7/" installpkg ${PKGDIR}/gcc-7.3.0-x86_64-1.txz
+ROOT="${TMP}/opt/gcc7/" installpkg ${PKGDIR}/gcc-g++-7.3.0-x86_64-1.txz
+ln -s /opt/gcc7/usr/bin/gcc ${TMP}/opt/cuda/bin/gcc
+ln -s /opt/gcc7/usr/bin/g++ ${TMP}/opt/cuda/bin/g++
+
 # Package up the modules and clean up
 dir2xzm ${TMP} ${NAME}-${VERS}-x86_64-${PKGREV}.xzm
 rm -rf ${TMP}
