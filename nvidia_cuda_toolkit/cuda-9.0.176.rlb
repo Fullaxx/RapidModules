@@ -49,7 +49,7 @@ find ${TMP} -type d -exec chmod -s {} \;
 find ${TMP}/opt/cuda/include -type f -exec chmod 0644 {} \;
 
 # Let's see what happens with GNU GCC 8
-sed -e 's@^#error -- unsupported GNU@//#error -- unsupported GNU@' -i ${TMP}/opt/cuda/include/crt/host_config.h
+# sed -e 's@^#error -- unsupported GNU@//#error -- unsupported GNU@' -i ${TMP}/opt/cuda/include/crt/host_config.h
 
 # Package up the modules and clean up
 dir2xzm ${TMP} ${NAME}-${VERS}-x86_64-${PKGREV}.xzm
