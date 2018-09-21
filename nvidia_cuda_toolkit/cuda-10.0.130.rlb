@@ -5,11 +5,11 @@
 set -e
 
 NAME="cuda"
-VERS="9.2.88.1"
+VERS="10.0.130"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
-NVINSTSCRIPT="${PKGDIR}/cuda_9.2.88_396.26_linux.run"
+NVINSTSCRIPT="${PKGDIR}/cuda_10.0.130_410.48_linux.run"
 TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
@@ -35,10 +35,6 @@ ${NVINSTSCRIPT} \
 ${CUDASILENT} \
 ${CUDAOVERRIDE} \
 ${CUDANOOGLLIBS}
-
-# Patch cuda 9.2.88 to 9.2.88.1
-${PKGDIR}/cuda_9.2.88.1_linux \
-${CUDASILENT} --accept-eula --installdir=${CUDALOC}
 
 # Throw in cudnn
 tar xf ${PKGDIR}/cudnn-9.2-linux-x64-v7.2.1.38.tgz -C ${TMP}/opt/

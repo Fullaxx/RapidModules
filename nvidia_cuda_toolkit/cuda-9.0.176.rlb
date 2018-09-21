@@ -36,6 +36,9 @@ ${CUDASILENT} \
 ${CUDAOVERRIDE} \
 ${CUDANOOGLLIBS}
 
+# Throw in cudnn
+tar xf ${PKGDIR}/cudnn-9.2-linux-x64-v7.2.1.38.tgz -C ${TMP}/opt/
+
 mkdir -p ${TMP}/etc/profile.d
 cat << EOFF > ${TMP}/etc/profile.d/rl_cuda.sh
 #!/bin/sh
@@ -51,7 +54,7 @@ find ${TMP}/opt/cuda/include -type f -exec chmod 0644 {} \;
 # Let's see what happens with GNU GCC 8
 # sed -e 's@^#error -- unsupported GNU@//#error -- unsupported GNU@' -i ${TMP}/opt/cuda/include/crt/host_config.h
 
-# Can we use GCC 7 this way?
+# Side-Load GCC 7
 mkdir -p ${TMP}/opt/gcc7
 ROOT="${TMP}/opt/gcc7/" installpkg ${PKGDIR}/gcc-7.3.0-x86_64-1.txz
 ROOT="${TMP}/opt/gcc7/" installpkg ${PKGDIR}/gcc-g++-7.3.0-x86_64-1.txz
