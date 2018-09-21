@@ -68,6 +68,10 @@ cat << EOFF > ${TMP}/etc/ld.so.conf.d/cuda-x86_64.conf
 EOFF
 chmod 0644 ${TMP}/etc/ld.so.conf.d/cuda-x86_64.conf
 
+# Fix the samples
+find ${TMP}/opt/cuda/samples -type f -name Makefile \
+-exec sed -e "s@${TMP}/opt/cuda@/opt/cuda@g" -i {} \;
+
 # Package up the modules and clean up
 dir2xzm ${TMP} ${NAME}-${VERS}-x86_64-${PKGREV}.xzm
 rm -rf ${TMP}

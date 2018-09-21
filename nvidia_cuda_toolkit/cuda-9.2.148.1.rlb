@@ -9,7 +9,7 @@ VERS="9.2.148.1"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
-NVINSTSCRIPT="${PKGDIR}/cuda_9.2.148_396.37_linux"
+NVINSTSCRIPT="${PKGDIR}/cuda_9.2.148_396.37_linux.run"
 TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
@@ -37,7 +37,7 @@ ${CUDAOVERRIDE} \
 ${CUDANOOGLLIBS}
 
 # Patch cuda 9.2.148 to 9.2.148.1
-${PKGDIR}/cuda_9.2.148.1_linux \
+${PKGDIR}/cuda_9.2.148.1_linux.run \
 ${CUDASILENT} --accept-eula --installdir=${CUDALOC}
 
 # Throw in cudnn
@@ -71,6 +71,10 @@ cat << EOFF > ${TMP}/etc/ld.so.conf.d/cuda-x86_64.conf
 /opt/cuda/lib64
 EOFF
 chmod 0644 ${TMP}/etc/ld.so.conf.d/cuda-x86_64.conf
+
+# Fix the samples
+find ${TMP}/opt/cuda/samples -type f -name Makefile \
+-exec sed -e "s@${TMP}/opt/cuda@/opt/cuda@g" -i {} \;
 
 # Package up the modules and clean up
 dir2xzm ${TMP} ${NAME}-${VERS}-x86_64-${PKGREV}.xzm
