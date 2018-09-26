@@ -1,0 +1,35 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="maven"
+VERS="3.5.4"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/apache-${PKG}-bin.tar.gz"
+# RLBFDIR=`dirname $0`
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+
+mkdir -p ${TMP}/opt ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+tar xvf ${TARBALL} -C ${TMP}/opt
+mv ${TMP}/opt/apache-${PKG} ${TMP}/opt/maven
+
+# Fix Permissions
+chown -R root.root ${TMP}
+find ${TMP} -type d -exec chmod -s {} \;
+find ${TMP} -type d -exec chmod 0755 {} \;
+find ${TMP}/opt/maven/{boot,conf,lib} -type f -exec chmod 0644 {} \;
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-noarch-${PKGREV}.xzm
+rm -rf ${TMP}
+
+# EOF
