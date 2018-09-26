@@ -36,9 +36,6 @@ ${CUDASILENT} \
 ${CUDAOVERRIDE} \
 ${CUDANOOGLLIBS}
 
-# Throw in cudnn
-tar xf ${PKGDIR}/cudnn-9.2-linux-x64-v7.2.1.38.tgz -C ${TMP}/opt/
-
 mkdir -p ${TMP}/etc/profile.d
 cat << EOFF > ${TMP}/etc/profile.d/rl_cuda.sh
 #!/bin/sh
@@ -69,8 +66,13 @@ EOFF
 chmod 0644 ${TMP}/etc/ld.so.conf.d/cuda-x86_64.conf
 
 # Fix the samples
+SAMPTMP="/tmp/cuda_samples-mod-$$"
 find ${TMP}/opt/cuda/samples -type f -name Makefile \
 -exec sed -e "s@${TMP}/opt/cuda@/opt/cuda@g" -i {} \;
+mkdir -p ${SAMPTMP}/opt/cuda
+mv ${TMP}/opt/cuda/samples ${SAMPTMP}/opt/cuda/
+dir2xzm ${SAMPTMP} cuda_samples-${VERS}-noarch-${PKGREV}.xzm
+rm -rf ${SAMPTMP}
 
 # Package up the modules and clean up
 dir2xzm ${TMP} ${NAME}-${VERS}-x86_64-${PKGREV}.xzm
