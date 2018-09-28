@@ -1,0 +1,65 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+NAME="Twisted"
+VERS="11.0.0"
+PKG="${NAME}-${VERS}"
+PKGDIR=${PKGDIR:-/mnt/gz_vg-packages_lv/python_mods}
+TARBALL="${PKGDIR}/${PKG}.tar.bz2"
+TMP=/tmp/$NAME-mod-$$
+if [ -e $TMP ]; then echo "$TMP exists, exiting..." >&2; exit 1; fi
+
+if [ ! -e $TARBALL ]; then echo "$TARBALL doesnt exist, exiting..."; exit 1; fi
+tar xvf $TARBALL
+cd $PKG
+
+# Automatically determine the architecture we're building on:
+if [ -z "$ARCH" ]; then
+  case "$( uname -m )" in
+    #i?86) export ARCH=i486 ;;
+    arm*) export ARCH=arm ;;
+    # Unless $ARCH is already set, use uname -m for all other archs:
+       *) export ARCH=$( uname -m ) ;;
+  esac
+fi
+
+LIBDIRSUFFIX=""
+if [ "$ARCH" = "i486" ]; then
+  SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+elif [ "$ARCH" = "i686" ]; then
+  SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+elif [ "$ARCH" = "s390" ]; then
+  SLKCFLAGS="-O2"
+elif [ "$ARCH" = "x86_64" ]; then
+  SLKCFLAGS="-O2 -fPIC"
+  LIBDIRSUFFIX="64"
+else
+  SLKCFLAGS="-O2"
+fi
+
+# create the TMP directory, compile the code and install to $TMP
+mkdir $TMP || exit 1
+
+python setup.py install --root $TMP
+
+# back out and copy this script to the module
+cd ../
+mkdir -p $TMP/usr/src/rlb
+cp $0 $TMP/usr/src/rlb
+
+# Make sure this module follows "the rules"
+find $TMP -type d | xargs chmod -v 755
+MANDIR=`find $TMP -type d -name man`
+if [ x"$MANDIR" != "x" ]; then
+  find $MANDIR -type l -name "*.gz" | xargs -r gunzip -f
+  find $MANDIR ! -type l -name "*.gz" | xargs -r gunzip
+fi
+find $TMP -type f | xargs file | grep ELF | cut -f1 -d: | xargs -r strip --strip-unneeded
+
+# Package up the modules and clean up
+dir2xzm $TMP $PKG-$ARCH-num.xzm
+rm -rf $PKG
+rm -rf $TMP
+
+# EOF
