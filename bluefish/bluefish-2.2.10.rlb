@@ -64,7 +64,7 @@ make install DESTDIR=${TMP}
 
 # copy the README to docs location
 mkdir -p ${TMP}/usr/doc/${PKG}
-cp AUTHORS COPYING ChangeLog README ${TMP}/usr/doc/${PKG}/
+cp AUTHORS COPYING ChangeLog NEWS README TODO ${TMP}/usr/doc/${PKG}/
 
 # Gunzip all the bflang files
 find ${TMP}/usr/share/bluefish/bflib/ -type f -name "*.gz" | xargs -r gunzip
