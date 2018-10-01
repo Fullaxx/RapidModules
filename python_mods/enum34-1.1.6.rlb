@@ -44,7 +44,7 @@ else
 fi
 
 # Build and Install
-python setup.py build
+# python setup.py build
 mkdir ${TMP}
 python setup.py install --root=${TMP}
 

@@ -44,12 +44,13 @@ else
 fi
 
 # Build and Install
-python setup.py build
+# python setup.py build
 mkdir ${TMP}
 python setup.py install --root=${TMP}
+# python3 setup.py install --root=${TMP}
 
 # Remove locales
-rm -rf ${TMP}/usr/lib64/python?.?/site-packages/keepnote/rc/locale
+rm -rf ${TMP}/usr/lib${LIBDIRSUFFIX}/python?.?/site-packages/keepnote/rc/locale
 
 # back out and copy this script to the module
 popd

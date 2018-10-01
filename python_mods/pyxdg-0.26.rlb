@@ -20,9 +20,10 @@ tar xvf ${TARBALL}
 pushd "${PKG}"
 
 # Build and Install
-python setup.py build
+# python setup.py build
 mkdir ${TMP}
 python setup.py install --root=${TMP}
+python3 setup.py install --root=${TMP}
 
 # back out and copy this script to the module
 popd
