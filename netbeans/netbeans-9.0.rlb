@@ -1,0 +1,35 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="netbeans"
+VERS="9.0"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+ZIPFILE="${PKGDIR}/incubating-${NAME}-java-${VERS}-bin.zip"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${ZIPFILE} ]; then echo "${ZIPFILE} doesnt exist, exiting..."; exit 1; fi
+mkdir -p ${TMP}/opt ${TMP}/usr/bin
+unzip ${ZIPFILE} -d ${TMP}/opt
+
+# Make a link in /usr/bin
+ln -s /opt/netbeans/bin/netbeans ${TMP}/usr/bin/netbeans
+
+# copy this script to the module
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+find ${TMP} -type f -name .lastModified -empty -exec rm {} \;
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-noarch-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
