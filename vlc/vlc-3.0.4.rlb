@@ -42,6 +42,12 @@ else
   SLKCFLAGS="-O2"
 fi
 
+if [ "${DISABLEQT}" == "yes" ]; then
+# it would appear that vlc desires QT5
+# and wont pick up QT4
+  VLCQT="--disable-qt=yes"
+fi
+
 CFLAGS="$SLKCFLAGS" \
 CXXFLAGS="$SLKCFLAGS" \
 ./configure \
@@ -66,7 +72,8 @@ CXXFLAGS="$SLKCFLAGS" \
 --enable-flac \
 --enable-opus \
 --enable-libva \
---enable-vdpau
+--enable-vdpau \
+${VLCQT}
 
 # We used to link against x264, does ffmpeg give this now?
 # --enable-x264 \ TEMP
