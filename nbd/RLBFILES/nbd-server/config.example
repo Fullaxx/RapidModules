@@ -1,0 +1,28 @@
+[generic]
+	ip = 10.1.1.1
+	port = 10809
+	user = root
+	group = root
+
+[BLOCKDEV]
+	exportname = /dev/sdX
+	timeout = 5
+	readonly = false
+	multifile = false
+	copyonwrite = false
+
+[FILE]
+	exportname = filename.img
+	timeout = 5
+	readonly = false
+	multifile = false
+	copyonwrite = false
+
+[TEMP]
+	exportname = temporary.img
+	timeout = 5
+	readonly = false
+	multifile = false
+	copyonwrite = false
+	prerun = dd if=/dev/zero of=%s bs=4096 count=1000
+	postrun = rm -f %s
