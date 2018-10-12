@@ -1,0 +1,59 @@
+gcc -Wall -std=c99 xnbd_bgctl.c xnbd_common.c xnbd_proxy*.c xnbd_cachestat.c lib/*.c -o xnbd_bgctl \
+-I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -lgthread-2.0 -lglib-2.0 -lpthread -lm
+
+gcc -Wall -std=c99 xnbd_server.c xnbd_common.c xnbd_proxy*.c xnbd_cachestat.c xnbd_target_cow_lzo.c xnbd_target.c lib/*.c -o xnbd_server \
+-I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -lgthread-2.0 -lglib-2.0 -lpthread -lm
+
+gcc -Wall -std=c99 xnbd_client.c xnbd_common.c xnbd_proxy*.c xnbd_cachestat.c xnbd_target_cow_lzo.c xnbd_target.c lib/*.c -o xnbd_client \
+-I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -lgthread-2.0 -lglib-2.0 -lpthread -lm
+
+gcc -Wall -std=c99 xnbd_cachestatdump.c xnbd_common.c xnbd_proxy*.c xnbd_cachestat.c xnbd_target_cow_lzo.c xnbd_target.c lib/*.c -o xnbd_cachestatdump \
+-I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -lgthread-2.0 -lglib-2.0 -lpthread -lm
+
+gcc -Wall -std=c99 xnbd_speedtest.c xnbd_common.c xnbd_proxy*.c xnbd_cachestat.c xnbd_target_cow_lzo.c xnbd_target.c lib/*.c -o xnbd_speedtest \
+-I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -lgthread-2.0 -lglib-2.0 -lpthread -lm
+
+gcc -Wall -std=c99 xnbd_watchdog.c xnbd_common.c xnbd_proxy*.c xnbd_cachestat.c xnbd_target_cow_lzo.c xnbd_target.c lib/*.c -o xnbd_watchdog \
+-I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -lgthread-2.0 -lglib-2.0 -lpthread -lm
+
+gcc -Wall -std=c99 xnbd_wrapper.c xnbd_common.c xnbd_proxy*.c xnbd_cachestat.c xnbd_target_cow_lzo.c xnbd_target.c lib/*.c -o xnbd_wrapper \
+-I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -lgthread-2.0 -lglib-2.0 -lpthread -lm -ljansson
+
+aclocal
+autoheader
+automake --force-missing --add-missing
+autoconf -i
+
+-pthread -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include
+-pthread -lgthread-2.0 -lglib-2.0
+
+
+sbin_PROGRAMS = \
+    xnbd-server \
+    xnbd-bgctl \
+    xnbd-client \
+    xnbd-watchdog \
+    xnbd-wrapper
+
+noinst_PROGRAMS = \
+    xnbd-cachestatdump \
+    xnbd-tester \
+    xnbd-speedtest
+
+lib_LTLIBRARIES = \
+    libxnbd_internal.la
+
+dist_sbin_SCRIPTS = \
+    xnbd-register.py \
+    xnbd-wrapper-ctl.py \
+    xnbd-wrapper-load.py
+
+libxnbd_internal_la_SOURCES = \
+    xnbd.h \
+    xnbd_cachestat.c \
+    xnbd_common.c \
+    xnbd_common.h \
+    xnbd_proxy.c \
+    xnbd_proxy.h \
+    xnbd_proxy_forwarder.c \
+    xnbd_target_cow_lzo.c
