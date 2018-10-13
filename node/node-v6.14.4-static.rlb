@@ -5,77 +5,51 @@
 set -e
 
 NAME="node"
-VERS="v0.10.48"
+VERS="v6.14.4"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
-TARBALL="${PKGDIR}/${PKG}.tar.xz"
 RLBFDIR=`dirname $0`
 TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
-if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
-tar xvf ${TARBALL}
-pushd "${PKG}"
-
 # Automatically determine the architecture we're building on:
 if [ -z "${ARCH}" ]; then
-  case "$( uname -m )" in
-    #i?86) export ARCH=i486 ;;
-    arm*) export ARCH=arm ;;
-    # Unless ${ARCH} is already set, use uname -m for all other archs:
-       *) export ARCH=$( uname -m ) ;;
-  esac
+  ARCH="$( uname -m )"
 fi
 
 LIBDIRSUFFIX=""
-if [ "${ARCH}" = "i486" ]; then
-  SLKCFLAGS="-march=i486 -mtune=i686"
-elif [ "${ARCH}" = "i686" ]; then
-  SLKCFLAGS="-march=i686 -mtune=i686"
-elif [ "${ARCH}" = "s390" ]; then
-  SLKCFLAGS=""
-elif [ "${ARCH}" = "x86_64" ]; then
-  SLKCFLAGS="-fPIC"
-  LIBDIRSUFFIX="64"
-else
-  SLKCFLAGS=""
-fi
+case "${ARCH}" in
+  x32) VBARCH="x86"; PKGARCH="i686" ;;
+  x86) VBARCH="x86"; PKGARCH="i686" ;;
+  i?86) VBARCH="x86"; PKGARCH="i686" ;;
+  x64) NODEARCH="x64"; PKGARCH="x86_64"; LIBDIRSUFFIX="64" ;;
+  x86_64) NODEARCH="x64"; PKGARCH="x86_64"; LIBDIRSUFFIX="64" ;;
+  amd64) NODEARCH="x64"; PKGARCH="x86_64"; LIBDIRSUFFIX="64" ;;
+  *) echo "Unknown Version: ${ARCH}"; exit 1 ;;
+esac
 
-# Fix man page path.
-# sed -i 's|share/||' tools/install.py
-sed -i 's|share/man/man1|man/man1|g' tools/install.py
-sed -i '/var manRoot/ s/"share",//' deps/npm/lib/{,un}build.js
-
-# Fix libdir for 64-bit.
-sed -i "s|lib/|lib${LIBDIRSUFFIX}/|g" tools/install.py
-sed -i "s/'lib'/'lib${LIBDIRSUFFIX}'/" lib/module.js
-sed -i "s|\"lib\"|\"lib${LIBDIRSUFFIX}\"|" deps/npm/lib/npm.js
-
-./configure \
---prefix=/usr \
---shared-openssl \
---shared-zlib
-
-if [ -n "${CFGSLEEPREVIEW}" ]; then
-  echo
-  echo "Sleeping ${CFGSLEEPREVIEW} seconds to review ..."
-  sleep ${CFGSLEEPREVIEW}
-fi
-
-# create the TMP directory, compile the code and install to $TMP
-CFLAGS="$SLKCFLAGS" CXXFLAGS="$SLKCFLAGS" make ${MAKEALLCPUS}
+TARBALL="${PKGDIR}/${PKG}-linux-${NODEARCH}.tar.xz"
 mkdir ${TMP}
-make ${MAKEALLCPUS} install DESTDIR=${TMP}
-ln -s node ${TMP}/usr/bin/nodejs
+tar xvf ${TARBALL} -C ${TMP}/
+mv ${TMP}/${PKG}-linux-${NODEARCH} ${TMP}/usr
+mv ${TMP}/usr/share/man ${TMP}/usr/
 
-# Documentation
-mkdir -p ${TMP}/usr/doc/${PKG}
-cp AUTHORS *.md LICENSE ${TMP}/usr/doc/${PKG}/
+if [ -d ${TMP}/usr/share/doc/node ]; then
+  mv ${TMP}/usr/share/doc ${TMP}/usr
+  mv ${TMP}/usr/doc/node ${TMP}/usr/doc/${PKG}
+else
+  mkdir -p ${TMP}/usr/doc/${PKG}
+fi
 
-# back out and copy this script to the module
-popd
+mv ${TMP}/usr/{CHANGELOG.md,LICENSE,README.md} ${TMP}/usr/doc/${PKG}/
+if [ ${LIBDIRSUFFIX} == "64" ]; then
+  mv ${TMP}/usr/lib ${TMP}/usr/lib64
+  ( set -e; cd ${TMP}/usr/bin; rm npm; ln -s ../lib64/node_modules/npm/bin/npm-cli.js npm )
+fi
+
+# copy this script to the module
 mkdir -p ${TMP}/usr/src/rlb
 cp $0 ${TMP}/usr/src/rlb
 
@@ -88,6 +62,7 @@ rm -rf ${TMP}/usr/lib*/node_modules/npm/.github
 find ${TMP}/usr -type f -name '.gitmodules' -exec rm -f {} \;
 find ${TMP}/usr -type f -name '.travis.yml' -exec rm -f {} \;
 find ${TMP}/usr -type f -name '.mailmap'    -exec rm -f {} \;
+find ${TMP}/usr -type f -name '.npmignore'  -exec rm -f {} \;
 
 # Set NODE_PATH to look for globally installed modules.
 mkdir -p ${TMP}/etc/profile.d
@@ -101,8 +76,10 @@ export NODE_PATH=/usr/lib${LIBDIRSUFFIX}/node_modules
 EOF
 chmod 0755 ${TMP}/etc/profile.d/*
 
-# Why are all these files 0664 ??
-#find $TMP/usr/ -type f -perm /022 -exec chmod g-w {} \;
+# Fix Permission
+chown -R root.root ${TMP}
+find ${TMP} -type d -exec chmod 0755 {} \;
+find ${TMP}/usr/include -type f -exec chmod 0644 {} \;
 
 # Make sure this module follows "the rules"
 find ${TMP} -type d | xargs chmod -v 755
