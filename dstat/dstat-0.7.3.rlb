@@ -1,0 +1,37 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="dstat"
+VERS="0.7.3"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${PKG}.tar.gz"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+mkdir -p ${TMP}/opt ${TMP}/usr/bin
+tar xvf ${TARBALL} -C ${TMP}/opt
+mv ${TMP}/opt/${PKG} ${TMP}/opt/${NAME}
+
+rm ${TMP}/opt/${NAME}/.travis.yml
+rm -r ${TMP}/opt/${NAME}/.github
+
+# Make a link in /usr/bin
+ln -s /opt/dstat/dstat ${TMP}/usr/bin/dstat
+
+# copy this script to the module
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-noarch-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
