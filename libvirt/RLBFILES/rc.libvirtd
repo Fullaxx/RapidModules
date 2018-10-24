@@ -5,7 +5,8 @@ VLDPIDFILE="/var/run/virtlogd.pid"
 
 case "$1" in
 	start)
-		umount /sys/fs/cgroup/* && umount /sys/fs/cgroup
+#		Removed 181024 (no longer necessary and conflicts with docker)
+#		umount /sys/fs/cgroup/* && umount /sys/fs/cgroup
 		if [ -r ${VLDPIDFILE} ]; then
 			echo "${VLDPIDFILE} exists!"
 		else
