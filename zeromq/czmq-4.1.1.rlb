@@ -52,7 +52,7 @@ fi
 --libdir=/usr/lib${LIBDIRSUFFIX} \
 --localstatedir=/var \
 --with-pic \
---enable-static=no \
+--enable-static=yes \
 --with-docs=yes \
 --enable-drafts=yes \
 --with-libzmq=yes \
