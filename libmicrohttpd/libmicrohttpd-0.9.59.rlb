@@ -52,8 +52,19 @@ CFLAGS="$SLKCFLAGS"
 --libdir=/usr/lib${LIBDIRSUFFIX} \
 --enable-https \
 --enable-shared \
---disable-static \
 --with-pic
+
+# Other Options
+#  --enable-poll[=ARG]     enable poll support (yes, no, auto) [auto]
+#  --enable-epoll[=ARG]    enable epoll support (yes, no, auto) [auto]
+#  --enable-itc=TYPE       use TYPE of inter-thread communication (pipe,
+#                          socketpair, eventfd) [auto]
+
+if [ -n "${CFGSLEEPREVIEW}" ]; then
+  echo
+  echo "Sleeping ${CFGSLEEPREVIEW} seconds to review ..."
+  sleep ${CFGSLEEPREVIEW}
+fi
 
 # create the TMP directory, compile the code and install to $TMP
 make ${MAKEALLCPUS}
