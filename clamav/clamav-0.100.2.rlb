@@ -1,0 +1,223 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="clamav"
+VERS="0.100.2"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${PKG}.tar.gz"
+RLBFDIR=`dirname $0`
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+# Activate doxygen (to build API documentation)
+if [ ! -x /usr/bin/doxygen ]; then
+  echo "I need /usr/bin/doxygen from doxygen-*.txz to build API documentation"
+  exit 1
+fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+tar xvf ${TARBALL}
+pushd "${PKG}"
+
+# Automatically determine the architecture we're building on:
+if [ -z "${ARCH}" ]; then
+  case "$( uname -m )" in
+    #i?86) export ARCH=i486 ;;
+    arm*) export ARCH=arm ;;
+    # Unless ${ARCH} is already set, use uname -m for all other archs:
+       *) export ARCH=$( uname -m ) ;;
+  esac
+fi
+
+LIBDIRSUFFIX=""
+if [ "${ARCH}" = "i486" ]; then
+  SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+elif [ "${ARCH}" = "i686" ]; then
+  SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+elif [ "${ARCH}" = "s390" ]; then
+  SLKCFLAGS="-O2"
+elif [ "${ARCH}" = "x86_64" ]; then
+  SLKCFLAGS="-O2 -fPIC"
+  LIBDIRSUFFIX="64"
+else
+  SLKCFLAGS="-O2"
+fi
+
+bailout() {
+  printf "\n  You must have a \"clamav\" user and group in order to run this script.
+  Add them with something like this:
+     groupadd -g 210 clamav
+     useradd -u 210 -d /dev/null -s /bin/false -g clamav clamav\n"
+  exit 1
+}
+
+# Check for ClamAV user and group availability
+if ! getent group clamav 2>&1 > /dev/null; then
+  bailout ;
+elif ! getent passwd clamav 2>&1 > /dev/null; then
+  bailout ;
+fi
+
+chown -R root:root .
+find -L . \
+ \( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+ -o -perm 511 \) -exec chmod 755 {} \; -o \
+ \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+ -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+# Some people don't have sendmail installed:
+# don't build milter stuff in this case.
+# This is your call, not having sendmail is *UNSUPPORTED*
+if [ ! -f /usr/lib${LIBDIRSUFFIX}/libmilter.a ]; then
+  milter="dis"
+  milter_cf=""
+else
+  milter="en"
+  milter_cf="clamav-milter"
+fi
+
+# Two letter country code
+# See http://www.iana.org/cctld/cctld-whois.htm for options
+# COUNTRY=${COUNTRY:-us}
+
+# Specify the desired mirror in the update config file
+# http://www.iana.org/cctld/cctld-whois.htm
+# sed -e "s/^\#DatabaseMirror.*/DatabaseMirror db.${COUNTRY}.clamav.net/" \
+# -i etc/freshclam.conf.sample
+
+sed \
+  -e "s/^Example/#Example/" \
+  -e "s/^\#LogSyslog/LogSyslog/" \
+  -e "s/^\#LogFacility/LogFacility/" \
+  -e "s/^\#PidFile.*/PidFile \/var\/run\/clamav\/freshclam.pid/" \
+  -e "s/^\#UpdateLogFile.*/UpdateLogFile \/var\/log\/clamav\/freshclam.log/" \
+  -e "s/^\#AllowSupplementaryGroups.*/AllowSupplementaryGroups yes/" \
+  -e "s/^\#DatabaseOwner.*/DatabaseOwner clamav/" \
+  -e "s/^\#NotifyClamd.*/NotifyClamd \/etc\/clamd.conf/" \
+  -i etc/freshclam.conf.sample
+
+sed \
+  -e "s/^Example/#Example/" \
+  -e "s/^\#LogSyslog/LogSyslog/" \
+  -e "s/^\#LogFacility/LogFacility/" \
+  -e "s/^\#LogFile\ .*/LogFile \/var\/log\/clamav\/clamd.log/" \
+  -e "s/^\#PidFile.*/PidFile \/var\/run\/clamav\/clamd.pid/" \
+  -e "s/^\#LocalSocket\ .*/LocalSocket \/var\/run\/clamav\/clamd.socket/" \
+  -e "s/^\#LocalSocketGroup.*/LocalSocketGroup clamav/" \
+  -e "s/^\#LocalSocketMode/LocalSocketMode/" \
+  -e "s/^\#FixStaleSocket/FixStaleSocket/" \
+  -e "s/^\#User.*/User clamav/" \
+  -e "s/^\#AllowSupplementaryGroups.*/AllowSupplementaryGroups yes/" \
+  -e "s/^\#ExitOnOOM/ExitOnOOM/" \
+  -i etc/clamd.conf.sample
+
+autoreconf -fi
+
+CFLAGS="${SLKCFLAGS}" \
+CXXFLAGS="${SLKCFLAGS}" \
+./configure \
+--prefix=/usr \
+--sysconfdir=/etc \
+--mandir=/usr/man \
+--docdir=/usr/doc/${PKG} \
+--infodir=/usr/info \
+--libdir=/usr/lib${LIBDIRSUFFIX} \
+--localstatedir=/var \
+--with-user=clamav \
+--with-group=clamav \
+--with-dbdir=/var/lib/clamav \
+--with-libjson \
+--${milter}able-milter \
+--enable-id-check \
+--enable-clamdtop \
+--disable-static \
+--disable-experimental
+
+if [ -n "${CFGSLEEPREVIEW}" ]; then
+  echo
+  echo "Sleeping ${CFGSLEEPREVIEW} seconds to review ..."
+  sleep ${CFGSLEEPREVIEW}
+fi
+
+# create the TMP directory, compile the code and install to $TMP
+# make V=1 (verbose)
+make ${MAKEALLCPUS}
+mkdir ${TMP}
+make install DESTDIR=${TMP}
+
+# Documentation
+mkdir -p ${TMP}/usr/doc/${PKG}
+cp COPYING* *.md ${TMP}/usr/doc/${PKG}/
+rm ${TMP}/usr/doc/${PKG}/INSTALL.md
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Prepare the config files:
+for cf in clamd freshclam ${milter_cf}; do
+  mv ${TMP}/etc/${cf}.conf.sample ${TMP}/etc/${cf}.conf
+done
+
+# Our rc script and logrotate entry:
+install -D -m 0755 ${RLBFDIR}/RLBFILES/rc.clamav ${TMP}/etc/rc.d/rc.clamav
+install -D -m 0644 ${RLBFDIR}/RLBFILES/logrotate.clamav ${TMP}/etc/logrotate.d/clamav
+
+# Create pid, socket, db, and log directories
+# init script must still ensure that /var/run/clamav exists
+# and has proper ownership and permissions though
+mkdir -p ${TMP}/var/lib/clamav ${TMP}/var/log/clamav ${TMP}/var/run/clamav
+chmod 771 ${TMP}/var/{lib,log,run}/clamav
+
+# Fixup some ownership and permissions issues
+chown -R root:root ${TMP}
+chmod -R o-w ${TMP}
+if [ "${milter}" = "en" ]; then
+  chown clamav ${TMP}/usr/sbin/clamav-milter
+  chmod 4700 ${TMP}/usr/sbin/clamav-milter
+fi
+chmod 0770 ${TMP}/var/lib/clamav
+install -D -m 0660 ${PKGDIR}/defs/main.cvd ${TMP}/var/lib/clamav/main.cvd
+install -D -m 0660 ${PKGDIR}/defs/daily.cvd ${TMP}/var/lib/clamav/daily.cvd
+install -D -m 0660 ${PKGDIR}/defs/bytecode.cvd ${TMP}/var/lib/clamav/bytecode.cvd
+
+# Create log files in such a way that they won't clobber existing ones
+touch ${TMP}/var/log/clamav/clamd.log
+touch ${TMP}/var/log/clamav/freshclam.log
+chmod 660 ${TMP}/var/log/clamav/*.log
+
+chown -R clamav:clamav ${TMP}/var/{lib,log,run}/clamav
+
+# mode of '/tmp/clamav-mod-12041/var/run/clamav' changed from 0771 (rwxrwx--x) to 0755 (rwxr-xr-x)
+# mode of '/tmp/clamav-mod-12041/var/log/clamav' changed from 0771 (rwxrwx--x) to 0755 (rwxr-xr-x)
+# mode of '/tmp/clamav-mod-12041/var/lib/clamav' changed from 0770 (rwxrwx---) to 0755 (rwxr-xr-x)
+
+# Make sure this module follows "the rules"
+find ${TMP} -type d | xargs chmod -v 755
+MANDIR=`find ${TMP} -type d -name man`
+if [ x"${MANDIR}" != "x" ]; then
+  find ${MANDIR} -type l -name "*.gz" | xargs -r gunzip -f
+  find ${MANDIR} ! -type l -name "*.gz" | xargs -r gunzip
+fi
+find ${TMP} -type f | xargs file | grep ELF | cut -f1 -d: | xargs -r strip --strip-unneeded
+
+# New Rules: No longer keep .la files
+for PKGLIBDIR in ${TMP}/lib* ${TMP}/usr/lib*; do
+  if [ -d ${PKGLIBDIR} ]; then
+    find ${PKGLIBDIR} -type f -name "*.la" | xargs -r rm
+  fi
+done
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
