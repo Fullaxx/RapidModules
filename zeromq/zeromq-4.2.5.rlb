@@ -52,7 +52,6 @@ CXXFLAGS="${SLKCFLAGS}" \
 --infodir=/usr/info \
 --libdir=/usr/lib${LIBDIRSUFFIX} \
 --localstatedir=/var \
---disable-static \
 --with-pic \
 --with-pgm
 
