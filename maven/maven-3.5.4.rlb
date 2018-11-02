@@ -22,6 +22,14 @@ cp $0 ${TMP}/usr/src/rlb
 tar xvf ${TARBALL} -C ${TMP}/opt
 mv ${TMP}/opt/apache-${PKG} ${TMP}/opt/maven
 
+mkdir -p ${TMP}/etc/profile.d
+cat << EOFF > ${TMP}/etc/profile.d/maven.sh
+#!/bin/bash
+
+export PATH="\${PATH}:/opt/maven/bin"
+EOFF
+chmod 0755 ${TMP}/etc/profile.d/maven.sh
+
 # Fix Permissions
 chown -R root.root ${TMP}
 find ${TMP} -type d -exec chmod -s {} \;
