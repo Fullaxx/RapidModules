@@ -49,11 +49,18 @@ chmod 0755 ${TMP}/etc/rc.d/rc.rl_docker
 # https://docs.docker.com/registry/insecure/
 # If we dont have certain root certs, allow pull over HTTP
 # If you need this, rename this file to daemon.json
-
 mkdir -p "${TMP}/etc/docker"
 cat << EOFF > ${TMP}/etc/docker/ir.daemon.json
 {
   "insecure-registries": ["registry-1.docker.io"]
+}
+EOFF
+
+# https://docs.docker.com/config/daemon/#configure-the-docker-daemon
+# https://success.docker.com/article/how-do-i-enable-debug-logging-of-the-docker-daemon
+cat << EOFF > ${TMP}/etc/docker/debug.daemon.json
+{
+  "debug": true
 }
 EOFF
 
