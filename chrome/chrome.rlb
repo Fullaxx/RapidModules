@@ -41,6 +41,8 @@ chmod 0644 ${TMP}/usr/man/man1/*.1
 if [ -d ${TMP}/usr/share/doc ]; then mv ${TMP}/usr/share/doc ${TMP}/usr/; fi
 for GZFILE in ${TMP}/usr/doc/google-chrome-stable/*.gz; do gunzip ${GZFILE}; done
 
+rm -rf ${TMP}/var
+
 dir2xzm ${TMP} chrome-${GCVERS}-x86_64-1.xzm
 rm -rf ${TMP} /tmp/package-google-chrome
 
