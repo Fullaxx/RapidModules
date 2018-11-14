@@ -1,0 +1,37 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="libtommath"
+VERS=`date "+%Y%m%d"`
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+mkdir -p ${TMP}/opt/codex
+pushd ${TMP}/opt/codex
+git clone https://github.com/libtom/libtommath.git ${NAME}
+rm -r ${NAME}/.git
+rm ${NAME}/.gitattributes
+rm ${NAME}/.gitignore
+rm ${NAME}/.travis.yml
+
+mkdir ${NAME}/pdf
+wget https://github.com/libtom/libtommath/releases/download/v1.0.1/bn-1.0.1.pdf -O ${NAME}/doc/bn-1.0.1.pdf
+wget https://github.com/libtom/libtommath/releases/download/v1.0.1/tommath-1.0.1.pdf -O ${NAME}/doc/tommath-1.0.1.pdf
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-noarch-${PKGREV}.xzm
+rm -rf ${NAME}
+rm -rf ${TMP}
+
+# EOF
