@@ -17,7 +17,7 @@ if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
 if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
 tar xvf ${TARBALL}
-pushd "${PKG}"
+pushd ${PKG}
 
 # Automatically determine the architecture we're building on:
 if [ -z "${ARCH}" ]; then
@@ -46,8 +46,8 @@ fi
 patch -p1 < ${RLBFDIR}/RLBFILES/vk_configh.patch
 patch -p1 < ${RLBFDIR}/RLBFILES/vk_configpri.patch
 
-CFLAGS="$SLKCFLAGS" \
-CXXFLAGS="$SLKCFLAGS" \
+CFLAGS="${SLKCFLAGS}" \
+CXXFLAGS="${SLKCFLAGS}" \
 qmake PREFIX=/usr
 
 # create the TMP directory, compile the code and install to $TMP

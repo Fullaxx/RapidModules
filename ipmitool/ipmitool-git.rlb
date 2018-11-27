@@ -14,7 +14,7 @@ if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
 git clone https://github.com/ipmitool/ipmitool.git ${PKG}
-pushd "${PKG}"
+pushd ${PKG}
 
 # Automatically determine the architecture we're building on:
 if [ -z "${ARCH}" ]; then
@@ -42,8 +42,8 @@ fi
 
 ./bootstrap
 
-# CFLAGS="$SLKCFLAGS" \
-# CXXFLAGS="$SLKCFLAGS" \
+# CFLAGS="${SLKCFLAGS}" \
+# CXXFLAGS="${SLKCFLAGS}" \
 ./configure \
 --prefix=/usr \
 --sysconfdir=/etc \

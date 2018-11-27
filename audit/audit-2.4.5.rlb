@@ -16,7 +16,7 @@ if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
 if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
 tar xvf ${TARBALL}
-pushd "${PKG}"
+pushd ${PKG}
 
 # Automatically determine the architecture we're building on:
 if [ -z "${ARCH}" ]; then
@@ -42,8 +42,8 @@ else
   SLKCFLAGS="-O2"
 fi
 
-# CFLAGS="$SLKCFLAGS" \
-# CXXFLAGS="$SLKCFLAGS" \
+# CFLAGS="${SLKCFLAGS}" \
+# CXXFLAGS="${SLKCFLAGS}" \
 ./configure \
 --prefix=/usr \
 --sysconfdir=/etc \

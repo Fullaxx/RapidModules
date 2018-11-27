@@ -28,7 +28,7 @@ fi
 
 if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
 tar xvf ${TARBALL}
-pushd "${PKG}"
+pushd ${PKG}
 
 # gcc 7.3.0 doesnt like the static declaration here
 sed -e 's@static int memfd_create@int memfd_create@' -i util/memfd.c

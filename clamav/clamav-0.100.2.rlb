@@ -23,7 +23,7 @@ fi
 
 if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
 tar xvf ${TARBALL}
-pushd "${PKG}"
+pushd ${PKG}
 
 # Automatically determine the architecture we're building on:
 if [ -z "${ARCH}" ]; then

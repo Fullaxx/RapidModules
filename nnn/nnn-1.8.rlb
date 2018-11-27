@@ -16,7 +16,7 @@ if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
 if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
 tar xvf ${TARBALL}
-pushd "${PKG}"
+pushd ${PKG}
 
 # Automatically determine the architecture we're building on:
 if [ -z "${ARCH}" ]; then
@@ -45,7 +45,7 @@ fi
 # create the TMP directory, compile the code and install to $TMP
 sed -e 's|PREFIX ?= /usr/local|PREFIX ?= /usr|' -i Makefile
 sed -e 's|MANPREFIX ?= $(PREFIX)/share/man|MANPREFIX ?= $(PREFIX)/man|' -i Makefile
-CFLAGS="$SLKCFLAGS" make ${MAKEALLCPUS}
+CFLAGS="${SLKCFLAGS}" make ${MAKEALLCPUS}
 strip ${NAME}
 mkdir ${TMP}
 make install DESTDIR=${TMP}

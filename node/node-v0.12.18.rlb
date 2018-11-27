@@ -17,7 +17,7 @@ if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
 if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
 tar xvf ${TARBALL}
-pushd "${PKG}"
+pushd ${PKG}
 
 # Automatically determine the architecture we're building on:
 if [ -z "${ARCH}" ]; then
@@ -65,7 +65,7 @@ if [ -n "${CFGSLEEPREVIEW}" ]; then
 fi
 
 # create the TMP directory, compile the code and install to $TMP
-CFLAGS="$SLKCFLAGS" CXXFLAGS="$SLKCFLAGS" make ${MAKEALLCPUS}
+CFLAGS="${SLKCFLAGS}" CXXFLAGS="${SLKCFLAGS}" make ${MAKEALLCPUS}
 mkdir ${TMP}
 make ${MAKEALLCPUS} install DESTDIR=${TMP}
 ln -s node ${TMP}/usr/bin/nodejs

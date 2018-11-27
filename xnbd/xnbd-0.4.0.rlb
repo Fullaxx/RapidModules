@@ -45,8 +45,8 @@ fi
 
 autoreconf -i
 
-# CFLAGS="$SLKCFLAGS" \
-# CXXFLAGS="$SLKCFLAGS" \
+# CFLAGS="${SLKCFLAGS}" \
+# CXXFLAGS="${SLKCFLAGS}" \
 ./configure \
 --prefix=/usr \
 --sysconfdir=/etc \
