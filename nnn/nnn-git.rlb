@@ -12,7 +12,7 @@ TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
-git clone https://github.com/jarun/nnn.git
+git clone https://github.com/jarun/nnn.git ${NAME}
 pushd ${NAME}
 
 # Automatically determine the architecture we're building on:
@@ -63,7 +63,7 @@ cp $0 ${TMP}/usr/src/rlb
 
 # Package up the modules and clean up
 dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
-rm -rf ${PKG}
+rm -rf ${NAME}
 rm -rf ${TMP}
 
 # EOF
