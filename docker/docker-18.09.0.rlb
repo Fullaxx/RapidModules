@@ -5,7 +5,7 @@
 set -e
 
 NAME="docker"
-VERS="18.06.1-ce"
+VERS="18.09.0"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
