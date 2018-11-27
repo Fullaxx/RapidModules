@@ -12,7 +12,7 @@ TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
-git clone git://git.2f30.org/noice.git
+git clone git://git.2f30.org/noice.git ${NAME}
 pushd ${NAME}
 sed -e 's|PREFIX = /usr/local|PREFIX = /usr|' -i Makefile
 

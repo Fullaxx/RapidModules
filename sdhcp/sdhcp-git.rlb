@@ -22,7 +22,7 @@ if [ -z "${ARCH}" ]; then
   esac
 fi
 
-git clone git://git.2f30.org/sdhcp.git
+git clone git://git.2f30.org/sdhcp.git ${NAME}
 pushd ${NAME}
 
 # make CPPFLAGS="-O2"
