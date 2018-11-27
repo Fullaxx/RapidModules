@@ -64,6 +64,7 @@ make install DESTDIR=${TMP}
 mkdir ${TMP}/usr/doc
 mv ${TMP}/usr/share/doc/medit-1 ${TMP}/usr/doc/${PKG}
 cp AUTHORS COPYING.* LICENSE NEWS README THANKS ${TMP}/usr/doc/${PKG}/
+rmdir ${TMP}/usr/share/doc
 
 # back out and copy this script to the module
 popd
