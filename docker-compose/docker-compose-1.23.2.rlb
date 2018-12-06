@@ -1,0 +1,27 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="docker-compose"
+VERS="1.23.2"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+DCBINARY="${PKGDIR}/${NAME}-Linux-x86_64-${VERS}"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${DCBINARY} ]; then echo "${DCBINARY} doesnt exist, exiting..."; exit 1; fi
+mkdir -p ${TMP}/usr/bin
+cp ${DCBINARY} ${TMP}/usr/bin/${NAME}
+chmod 0755 ${TMP}/usr/bin/docker-compose
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
