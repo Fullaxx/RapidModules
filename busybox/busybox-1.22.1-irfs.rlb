@@ -1,0 +1,63 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+NAME="busybox"
+VERS="1.22.1"
+PKG="${NAME}-${VERS}"
+TARBALL="${PKG}.tar.bz2"
+TMP=/tmp/$NAME-mod-$$
+if [ -e $TMP ]; then echo "$TMP exists, exiting..." >&2; exit 1; fi
+
+if [ ! -e $TARBALL ]; then echo "$TARBALL doesnt exist, exiting..."; exit 1; fi
+tar xvf $TARBALL
+cd $PKG
+
+# Automatically determine the architecture we're building on:
+if [ -z "$ARCH" ]; then
+  case "$( uname -m )" in
+    #i?86) export ARCH=i486 ;;
+    arm*) export ARCH=arm ;;
+    # Unless $ARCH is already set, use uname -m for all other archs:
+       *) export ARCH=$( uname -m ) ;;
+  esac
+fi
+
+# Copy in the config
+if [ -r ../RLBFILES/initrd.config ]; then
+  cp ../RLBFILES/initrd.config ./.config
+else
+  echo "../RLBFILES/initrd.config does not exist!"
+  exit 1
+fi
+
+# compile the code, create the TMP directory, install to $TMP
+make $MAKEALLCPUS || exit 1
+mkdir -p $TMP/usr/share/busybox || exit 1
+make install || exit 1
+
+# All files get installed to _install
+# move them to their new home
+cp .config $TMP/usr/share/busybox/config
+mv _install/bin _install/sbin $TMP
+
+# back out and copy this script to the module
+cd ../
+mkdir -p $TMP/usr/src/rlb
+cp $0 $TMP/usr/src/rlb
+
+# Make sure this module follows "the rules"
+find $TMP -type d | xargs chmod -v 755
+MANDIR=`find $TMP -type d -name man`
+if [ x"$MANDIR" != "x" ]; then
+  find $MANDIR -type l -name "*.gz" | xargs -r gunzip -f
+  find $MANDIR ! -type l -name "*.gz" | xargs -r gunzip
+fi
+find $TMP -type f | xargs file | grep ELF | cut -f1 -d: | xargs -r strip --strip-unneeded
+
+# Package up the modules and clean up
+dir2xzm $TMP $PKG-irfs-$ARCH-num.xzm
+rm -rf $PKG
+rm -rf $TMP
+
+# EOF
