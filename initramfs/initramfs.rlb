@@ -1,0 +1,41 @@
+#!/bin/bash
+
+set -e
+
+NAME="irfs"
+VERS=`date "+%Y%m%d"`
+RLBFDIR=`dirname $0`
+
+CWD=`pwd`
+# XXX FIXME
+BBMOD="/opt/RL/packages/busybox/busybox-1.29.3-x86_64-bksrc1.xzm"
+# XXX FIXME
+
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?" >&2; exit 1; fi
+
+# Install busybox
+if [ ! -f ${BBMOD} ]; then echo "${BBMOD} does not exist!" >&2; exit 1; fi
+echo "Installing ${BBMOD} ..."
+rl_xm ${BBMOD} ${TMP} >/dev/null
+
+# Clean Busybox and link /bin/sh
+rm -rf ${TMP}/usr
+ln -s busybox ${TMP}/sbin/sh
+ln -s sbin ${TMP}/bin
+
+# Install initramfs scripts
+mkdir ${TMP}/lib
+install -D -m 0755 ${RLBFDIR}/RLBFILES/init ${TMP}/init
+install -D -m 0755 ${RLBFDIR}/RLBFILES/cleanup ${TMP}/cleanup
+install -D -m 0644 ${RLBFDIR}/RLBFILES/livekitlib ${TMP}/lib/livekitlib
+
+echo "Creating initramfs ..."
+pushd ${TMP}
+find . | cpio -H newc -o | lzma > "${CWD}/${NAME}-${VERS}.img.lz"
+# find . | cpio -H newc -o | xz > "${CWD}/${NAME}-${VERS}.img.xz"
+echo Created "${CWD}/${NAME}-${VERS}.img.lz"
+
+popd
+rm -r ${TMP}
