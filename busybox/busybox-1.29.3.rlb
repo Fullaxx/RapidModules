@@ -45,8 +45,8 @@ cp "$1" ./.config
 
 # create the TMP directory, compile the code and install to $TMP
 make ${MAKEALLCPUS}
-mkdir -p ${TMP}/bin
-install -D -m 0755 busybox ${TMP}/bin/
+mkdir -p ${TMP}/sbin
+install -D -m 0755 busybox ${TMP}/sbin/
 
 # back out and copy this script to the module
 popd
