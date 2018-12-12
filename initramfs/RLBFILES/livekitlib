@@ -153,6 +153,9 @@ init_proc_sysfs()
   mount -n -t sysfs sysfs /sys
   mount -n -o remount,rw rootfs /
   ln -sf /proc/mounts /etc/mtab
+
+# Set autoeject to true
+  echo "1" >/proc/sys/dev/cdrom/autoeject
 }
 
 # make sure some devices are there
@@ -510,7 +513,7 @@ copy_rootcopy_content()
 
   if [ "$(ls -1 "$1/rootcopy/" 2>/dev/null)" != "" ]; then
     echo_green_star
-    echo "Copying content of rootcopy directory..."
+    echo "Copying content of rootcopy directory ..."
     cp -a "$1"/rootcopy/* "$2"
   fi
 }
@@ -530,8 +533,8 @@ copy_to_ram()
     return
   fi
 
-  #echo "* Copying $LIVEKITNAME data to RAM..." >&2
-  echo "* Copying RapidLinux data to RAM..." >&2
+  #echo "* Copying $LIVEKITNAME data to RAM ..." >&2
+  echo "* Copying RapidLinux data to RAM ..." >&2
   RAM="$(dirname "$2")"/toram
   mkdir  -p "$RAM"
   cp -a "$1"/* "$RAM"

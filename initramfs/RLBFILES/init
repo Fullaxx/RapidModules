@@ -30,7 +30,7 @@ debug_start
                                                                                                                                                        debug_shell
 init_devs
 init_aufs
-# init_zram ZRAM IS A MODULE AT THE MOMENT
+# init_zram ZRAM IS A MODULE AT THE MOMENT (and not located in the initramfs)
 
 # find data dir with filesystem bundles
 DATA="$(find_data 15 "$DATAMNT")"
