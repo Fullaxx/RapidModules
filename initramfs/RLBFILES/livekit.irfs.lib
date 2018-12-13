@@ -435,7 +435,7 @@ find_data()
   local DATA FROM
 
   if [ "$(cmdline_value rltar)" != "" ]; then
-    if [ -r /lib/custom_pxedl ]; then
+    if [ -r /lib/rltar_pxedl.irfs.lib ]; then
       download_rl_tarball "$2"
       return
     fi

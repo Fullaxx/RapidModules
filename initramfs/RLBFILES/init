@@ -14,7 +14,8 @@ export PATH=".:/:/usr/sbin:/usr/bin:/sbin:/bin"
 
 # load any library functions we find in /lib
 for ILIBFILE in /lib/*.irfs.lib; do
-  . ${ILIBFILE}
+  echo "Sourcing ${ILIBFILE} ..."
+  source ${ILIBFILE}
 done
 
 transfer_initramfs

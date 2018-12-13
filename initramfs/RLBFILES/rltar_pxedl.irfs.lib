@@ -68,6 +68,7 @@ download_rl_tarball()
   IP=$(get_ip ${DHCPCDEV})
   echo "IP = ${IP}" >&2
   ip addr add "$IP/24" dev "${DHCPCDEV}"
+  ip link set ${DHCPCDEV} mtu 9000
 
   RLTAR="$(cmdline_value rltar)"
   ( cd "$1/$LIVEKITNAME" && wget "http://${RLTAR}" && tar xf rl.tar && rm rl.tar ) >&2
