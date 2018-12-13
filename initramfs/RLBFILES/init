@@ -12,7 +12,10 @@ export PATH=".:/:/usr/sbin:/usr/bin:/sbin:/bin"
 # we remove it so as not to interefere with the cleanup script
 /sbin/rm /sbin/init
 
-. /lib/livekitlib
+# load any library functions we find in /lib
+for ILIBFILE in /lib/*.irfs.lib; do
+  . ${ILIBFILE}
+done
 
 transfer_initramfs
 

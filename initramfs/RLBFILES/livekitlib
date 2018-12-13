@@ -153,9 +153,6 @@ init_proc_sysfs()
   mount -n -t sysfs sysfs /sys
   mount -n -o remount,rw rootfs /
   ln -sf /proc/mounts /etc/mtab
-
-# Set autoeject to true
-  echo "1" >/proc/sys/dev/cdrom/autoeject
 }
 
 # make sure some devices are there
@@ -365,6 +362,27 @@ download_data_pxe()
   echo "$1/$LIVEKITNAME"
 }
 
+# Save the kernel and irfs.img to /kernel
+# $1 = the directory where we mounted our device with RL
+#
+savekernel()
+{
+  if [ -d "$1/boot" ]; then
+    mkdir /kernel
+    cp "$1"/boot/vmlinuz /kernel/
+    cp "$1"/boot/irfs.img /kernel/
+  fi
+}
+
+# Save the device that was used to copy RL
+# $1 = the device we used to copy RL from
+#
+savedevice()
+{
+  mkdir /from
+  echo "$1" > /from/DEVICE
+}
+
 # Find LIVEKIT data by mounting all devices
 # If found, keep mounted, else unmount
 # $1 = data directory target (mount here)
@@ -393,12 +411,9 @@ find_data_try()
 
     # search for bundles in the mounted directory
     if [ -d "$1/$FROM/base" ] && [ -d "$1/$FROM/modules" ] && [ -d "$1/$FROM/optional" ]; then
-      if [ -d "$1/boot" ]; then
-        mkdir /kernel
-        cp "$1"/boot/vmlinuz /kernel/
-        cp "$1"/boot/irfs.img /kernel/
-      fi
       # we found the treasure trove
+      savekernel "$1"
+      savedevice "$DEVICE"
       mount -o remount,rw "$DEVICE" "$1" 2>/dev/null
       echo "$1/$FROM" | tr -s "/" | sed -r "s:/[^/]+/[.][.]/:/:g"
       return
@@ -420,6 +435,13 @@ find_data()
   debug_log "find_data" "$*"
 
   local DATA FROM
+
+  if [ "$(cmdline_value rltar)" != "" ]; then
+    if [ -r /lib/custom_pxedl ]; then
+      download_rl_tarball "$2"
+      return
+    fi
+  fi
 
   if [ "$(cmdline_value ip)" != "" ]; then
     download_data_pxe "$2"
@@ -504,6 +526,15 @@ persistent_changes()
   fi
 }
 
+# If we loaded from a CDROM, set autoeject until flag says no
+#
+autoejectcdrom()
+{
+  if ! grep -q noeject /proc/cmdline; then
+    echo "1" >/proc/sys/dev/cdrom/autoeject
+  fi
+}
+
 # Copy content of rootcopy directory to union
 # $1 = data directory
 # $2 = union directory
@@ -538,14 +569,12 @@ copy_to_ram()
   RAM="$(dirname "$2")"/toram
   mkdir  -p "$RAM"
   cp -a "$1"/* "$RAM"
-# This works, but lets do it elsewhere
-#  cp -a "$1"/../boot/vmlinuz "$RAM"
-#  cp -a "$1"/../boot/initrd.lz "$RAM"
   echo "$RAM"
 
   MDIR="$(mounted_dir "$1")"
   MDEV="$(mounted_device "$1")"
   MDEV="$(losetup $MDEV 2>/dev/null | cut -d " " -f 3)"
+  autoejectcdrom
   umount "$MDIR" 2>/dev/null
 
   if [ "$MDEV" ]; then # iso was mounted here, try to unmount the FS it resides on too
