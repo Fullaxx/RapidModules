@@ -7,8 +7,6 @@
 
 # Live Kit Name. Defaults to 'mylinux';
 # Must not contain any spaces.
-# If you change it, you must run ./tools/isolinux.bin.update script
-# in order to update isolinux.bin for CD booting.
 LIVEKITNAME="rl"
 
 # =================================================================
@@ -526,7 +524,7 @@ persistent_changes()
   fi
 }
 
-# If we loaded from a CDROM, set autoeject until flag says no
+# If we loaded from a CDROM, set autoeject unless flag exists
 #
 autoejectcdrom()
 {
@@ -564,7 +562,9 @@ copy_to_ram()
     return
   fi
 
-  #echo "* Copying $LIVEKITNAME data to RAM ..." >&2
+  #WHY DOESNT THIS WORK??
+  autoejectcdrom
+
   echo "* Copying RapidLinux data to RAM ..." >&2
   RAM="$(dirname "$2")"/toram
   mkdir  -p "$RAM"
@@ -574,7 +574,6 @@ copy_to_ram()
   MDIR="$(mounted_dir "$1")"
   MDEV="$(mounted_device "$1")"
   MDEV="$(losetup $MDEV 2>/dev/null | cut -d " " -f 3)"
-  autoejectcdrom
   umount "$MDIR" 2>/dev/null
 
   if [ "$MDEV" ]; then # iso was mounted here, try to unmount the FS it resides on too
