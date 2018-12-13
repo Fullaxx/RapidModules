@@ -1,0 +1,83 @@
+#!/bin/sh
+
+# Functions library :: for SP PXE BOOT
+# Author: Brett Kuskie <fullaxx@gmail.com>
+#
+
+# Modprobe for igb and ixgbe in correct order
+#
+custom_init_nics()
+{
+  debug_log "custom_init_nics" "$*"
+  local MODULE ETH LC NEWLC DIFF
+
+  LC="$(cat /proc/net/dev | wc -l)"
+  for MODULE in igb ixgbe; do
+    echo "Attemping modprobe $MODULE ..." >&2
+    modprobe $MODULE >&2
+    NEWLC="$(cat /proc/net/dev | wc -l)"
+    if [ "$NEWLC" == "$LC" ]; then
+      rmmod $MODULE 2>/dev/null
+    else
+      DIFF=$((NEWLC - LC))
+      echo "$MODULE provided $DIFF new nics" >&2
+      LC="$NEWLC"
+    fi
+  done
+}
+
+# udhcpc does not set the obtained IP address to the interface
+# so we have to do this hack to get it, then set it manually
+# $1 = timeout
+#
+get_ip()
+{
+  debug_log "get_set_ip" "$*"
+  local OBTAINEDIP
+
+  ifconfig $1 up
+  udhcpc -q -i $1 2>/udhcpc_output
+  OBTAINEDIP="$(grep 'lease of' /udhcpc_output | awk '{print $4}')"
+  rm -f /udhcpc_output
+  echo "$OBTAINEDIP"
+}
+
+# Download data from http
+# $1 = target (store downloaded files there)
+#
+download_rl_tarball()
+{
+  debug_log "download_rl_tarball" "$*"
+  local DHCPCDEV IP RLTAR
+
+  mkdir -p "$1/$LIVEKITNAME"
+
+  custom_init_nics
+
+# if we have an eth2, then likely we have 4 NICS
+# which means we are a PXE-booted reference
+# if we dont, then assume that we have 2 and we are compute
+  if grep -q eth2 /proc/net/dev ; then
+    DHCPCDEV="eth2"
+  else
+    DHCPCDEV="eth0"
+  fi
+
+# Use the correct NIC to get an IP address
+  echo "DHCPCDEV = ${DHCPCDEV}" >&2
+  IP=$(get_ip ${DHCPCDEV})
+  echo "IP = ${IP}" >&2
+  ip addr add "$IP/24" dev "${DHCPCDEV}"
+
+  RLTAR="$(cmdline_value rltar)"
+  ( cd "$1/$LIVEKITNAME" && wget "http://${RLTAR}" && tar xf rl.tar && rm rl.tar ) >&2
+  if [ ! -d "$1/$LIVEKITNAME/base" ] || [ ! -d "$1/$LIVEKITNAME/modules" ] || [ ! -d "$1/$LIVEKITNAME/optional" ] || [ ! -d "$1/$LIVEKITNAME/rootcopy" ]; then
+    echo "ERROR! COULD NOT DOWNLOAD rl.tar!" >&2
+    fatal "$LIVEKITNAME data not found"
+  fi
+
+# reset the NIC back to default down unconfigured state
+  ip addr del $IP/24 dev ${DHCPCDEV}
+  ifconfig ${DHCPCDEV} 0.0.0.0 down
+  echo "$1/$LIVEKITNAME"
+}
