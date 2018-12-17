@@ -1,0 +1,47 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="noVNC"
+VERS="1.0.0"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${PKG}.tar.gz"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+
+# create the TMP directory, clone and install to $TMP
+mkdir -p ${TMP}/opt ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+tar xvf ${TARBALL} -C ${TMP}/opt
+mv ${TMP}/opt/${PKG} ${TMP}/opt/${NAME}
+
+rm ${TMP}/opt/noVNC/.gitignore
+rm ${TMP}/opt/noVNC/.gitmodules
+rm ${TMP}/opt/noVNC/.npmignore
+rm ${TMP}/opt/noVNC/.travis.yml
+find ${TMP}/opt/noVNC/ -type f -name .npmignore -exec rm {} \;
+
+# Create link to websockify
+ln -s /opt/websockify ${TMP}/opt/${NAME}/utils/websockify
+
+# Make sure this module follows "the rules"
+find ${TMP} -type d | xargs chmod -v 755
+MANDIR=`find ${TMP} -type d -name man`
+if [ x"${MANDIR}" != "x" ]; then
+  find ${MANDIR} -type l -name "*.gz" | xargs -r gunzip -f
+  find ${MANDIR} ! -type l -name "*.gz" | xargs -r gunzip
+fi
+find ${TMP} -type f | xargs file | grep ELF | cut -f1 -d: | xargs -r strip --strip-unneeded
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-noarch-${PKGREV}.xzm
+rm -rf ${TMP}
+
+# EOF
