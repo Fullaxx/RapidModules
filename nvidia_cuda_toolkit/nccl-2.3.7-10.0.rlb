@@ -1,0 +1,35 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="nccl"
+VERS="2.3.7-10.0"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/nccl_2.3.4-1+cuda10.0_x86_64.txz"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+
+# Make our directories
+mkdir -p ${TMP}/opt ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+tar xvf ${TARBALL} -C ${TMP}/opt
+mv ${TMP}/opt/nccl* ${TMP}/opt/cuda
+mv ${TMP}/opt/cuda/lib ${TMP}/opt/cuda/lib64
+
+# Fix permissions
+find ${TMP}/opt/cuda/ -type d -exec chmod -s {} \;
+find ${TMP}/opt/cuda/ -type d -exec chmod 0755 {} \;
+find ${TMP}/opt/cuda/ -type f -exec chmod 0644 {} \;
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${NAME}-${VERS}-x86_64-${PKGREV}.xzm
+rm -rf ${TMP}
+
+# EOF
