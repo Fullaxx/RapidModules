@@ -6,6 +6,7 @@ set -e
 
 NAME="docker"
 VERS="18.09.0"
+DCVERS="1.23.2"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
@@ -18,8 +19,22 @@ if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1;
 mkdir -p ${TMP}/usr ${TMP}/etc/rc.d
 tar xvf ${TARBALL} -C ${TMP}/usr
 mv ${TMP}/usr/docker ${TMP}/usr/bin
+
+curl -L https://github.com/docker/compose/releases/download/${DCVERS}/docker-compose-Linux-x86_64 \
+-o ${TMP}/usr/bin/docker-compose
+
+MAJMINVERS=`echo "${VERS}" | cut -d. -f1-2`
+mkdir -p ${TMP}/etc/bash_completion.d
+curl -L https://raw.githubusercontent.com/docker/docker-ce/${MAJMINVERS}/components/cli/contrib/completion/bash/docker \
+-o ${TMP}/etc/bash_completion.d/docker
+
+curl -L https://raw.githubusercontent.com/docker/compose/${DCVERS}/contrib/completion/bash/docker-compose \
+-o ${TMP}/etc/bash_completion.d/docker-compose
+
 chown -R root.root ${TMP}/usr/bin
-chmod 0755 ${TMP}/usr/bin/*
+chmod -R 0755 ${TMP}/usr/bin
+chmod 0755 ${TMP}/etc/bash_completion.d
+chmod 0644 ${TMP}/etc/bash_completion.d/*
 
 mkdir -p ${TMP}/usr/src/rlb
 cp $0 ${TMP}/usr/src/rlb
