@@ -1,0 +1,200 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+# Much of this script was ripped from the following:
+# https://slackbuilds.org/slackbuilds/14.2/libraries/wxPython/wxPython.SlackBuild
+# Copyright 2007-2014 Heinz Wiesinger, Amsterdam, The Netherlands
+
+set -e
+
+NAME="wxPython"
+VERS="2.8.12.1"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${NAME}-src-${VERS}.tar.bz2"
+RLBFDIR=`dirname $0`
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+# Activate doxygen (to build documentation??)
+if [ ! -x /usr/bin/doxygen ]; then
+  echo "I need /usr/bin/doxygen from doxygen-*.txz to build documentation??"
+  exit 1
+fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+tar xvf ${TARBALL}
+mv ${NAME}-src-${VERS} ${PKG}
+pushd ${PKG}
+CWD=`pwd`
+
+# Automatically determine the architecture we're building on:
+if [ -z "${ARCH}" ]; then
+  case "$( uname -m )" in
+    #i?86) export ARCH=i486 ;;
+    arm*) export ARCH=arm ;;
+    # Unless ${ARCH} is already set, use uname -m for all other archs:
+       *) export ARCH=$( uname -m ) ;;
+  esac
+fi
+
+LIBDIRSUFFIX=""
+if [ "${ARCH}" = "i486" ]; then
+  SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+elif [ "${ARCH}" = "i686" ]; then
+  SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+elif [ "${ARCH}" = "s390" ]; then
+  SLKCFLAGS="-O2"
+elif [ "${ARCH}" = "x86_64" ]; then
+  SLKCFLAGS="-O2 -fPIC"
+  LIBDIRSUFFIX="64"
+else
+  SLKCFLAGS="-O2"
+fi
+
+# Gnomeprint support
+if [ "${GNOMEPRINT:-no}" = "no" ]; then
+  DOGP="without"
+else
+  DOGP="with"
+fi
+
+CFLAGS="${SLKCFLAGS}" \
+CXXFLAGS="${SLKCFLAGS} -Wno-narrowing" \
+./configure \
+--prefix=/usr \
+--sysconfdir=/etc \
+--mandir=/usr/man \
+--infodir=/usr/info \
+--localstatedir=/var \
+--libdir=/usr/lib${LIBDIRSUFFIX} \
+--disable-static \
+--with-sdl \
+--with-opengl \
+--${DOGP}-gnomeprint \
+--enable-unicode \
+--enable-graphics_ctx \
+--enable-display \
+--enable-mediactrl \
+--enable-sound 
+
+if [ -n "${CFGSLEEPREVIEW}" ]; then
+  echo
+  echo "Sleeping ${CFGSLEEPREVIEW} seconds to review ..."
+  sleep ${CFGSLEEPREVIEW}
+fi
+
+# create the TMP directory, compile the code and install to $TMP
+make ${MAKEALLCPUS}
+mkdir ${TMP}
+
+#Additional stuff from contrib
+make -C contrib/src/gizmos
+make -C contrib/src/ogl
+make -C contrib/src/stc
+
+make install DESTDIR=${TMP}
+make -C contrib/src/gizmos install DESTDIR=${TMP}
+make -C contrib/src/ogl install DESTDIR=${TMP}
+make -C contrib/src/stc install DESTDIR=${TMP}
+
+(
+set -e
+cd wxPython
+python setup.py \
+  WXPORT=gtk2 \
+  UNICODE=1 \
+  EP_ADD_OPTS=1 \
+  EP_FULL_VER=0 \
+  NO_SCRIPTS=0 \
+  WX_CONFIG="${CWD}/wx-config --no_rpath" \
+  build_ext --include-dirs=${CWD}/lib/wx/include/gtk2-unicode-release-2.8 \
+            --library-dirs=${CWD}/lib \
+            --rpath=/usr/lib${LIBDIRSUFFIX} \
+  build
+
+python setup.py \
+  WXPORT=gtk2 \
+  UNICODE=1 \
+  EP_ADD_OPTS=1 \
+  EP_FULL_VER=0 \
+  NO_SCRIPTS=0 \
+  WX_CONFIG="${CWD}/wx-config --prefix=${TMP}/usr/bin/ --no_rpath" \
+  SYS_WX_CONFIG="wx-config --enable-unicode" \
+  build_ext --include-dirs=${CWD}/lib/wx/include/gtk2-unicode-release-2.8 \
+            --library-dirs=${CWD}/lib \
+            --rpath=/usr/lib${LIBDIRSUFFIX} \
+  install --root=${TMP}
+
+  mkdir -p ${TMP}/usr/share/{applications,pixmaps} ${TMP}/usr/share/icons/hicolor/{16x16,32x32}/apps
+  install -m 644 distrib/*.desktop ${TMP}/usr/share/applications/
+
+  install -m 644 wx/py/PyCrust_16.png ${TMP}/usr/share/icons/hicolor/16x16/apps/PyCrust.png
+  install -m 644 wx/py/PyCrust_32.png ${TMP}/usr/share/icons/hicolor/32x32/apps/PyCrust.png
+  ln -s /usr/share/icons/hicolor/32x32/apps/PyCrust.png ${TMP}/usr/share/pixmaps/PyCrust.png
+  install -m 644 wx/py/PySlices_16.png ${TMP}/usr/share/icons/hicolor/16x16/apps/PySlices.png
+  install -m 644 wx/py/PySlices_32.png ${TMP}/usr/share/icons/hicolor/32x32/apps/PySlices.png
+  ln -s /usr/share/icons/hicolor/32x32/apps/PySlices.png ${TMP}/usr/share/pixmaps/PySlices.png
+  install -m 644 wx/tools/XRCed/XRCed_16.png ${TMP}/usr/share/icons/hicolor/16x16/apps/XRCed.png
+  install -m 644 wx/tools/XRCed/XRCed_32.png ${TMP}/usr/share/icons/hicolor/32x32/apps/XRCed.png
+  ln -s /usr/share/icons/hicolor/32x32/apps/XRCed.png ${TMP}/usr/share/pixmaps/XRCed.png
+
+# don't ship editra - it releases independently and the included version is outdated
+  rm ${TMP}/usr/bin/editra
+  rm ${TMP}/usr/share/applications/Editra.desktop
+  rm -r ${TMP}/usr/lib${LIBDIRSUFFIX}/python2.7/site-packages/wx-2.8-gtk2-unicode/wx/tools/Editra
+)
+
+# OK WHAT THE F@#% IS HAPPENING HERE??
+# Why do the i_files installation have an absolute path?
+mv ${TMP}/${CWD}/include/wx-2.8/wx/wxPython/ ${TMP}/usr/include/wx-2.8/wx/
+if [ -d ${TMP}/mnt ]; then rm -rf ${TMP}/mnt; fi
+# SOMETHING CLEARLY WENT HORRIBLE WRONG HERE
+
+# install wxPython includes
+# cp -r wxPython/include/wx/wxPython ${TMP}/usr/include/wx-2.8/wx/
+
+# Documentation
+mkdir -p ${TMP}/usr/doc/${PKG}/wxPython
+cp -r README.1st.txt docs* ${TMP}/usr/doc/${PKG}/
+cp -r wxPython/docs/* ${TMP}/usr/doc/${PKG}/wxPython
+
+(
+# Remove unnecessary docs
+  cd ${TMP}/usr/doc/${PKG}/docs
+  rm -r cocoa latex mac metrowerks microwin msw palmos word
+)
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Remove unnecessary locales
+rm -r ${TMP}/usr/share/locale
+
+# Make sure this module follows "the rules"
+find ${TMP} -type d | xargs chmod -v 755
+MANDIR=`find ${TMP} -type d -name man`
+if [ x"${MANDIR}" != "x" ]; then
+  find ${MANDIR} -type l -name "*.gz" | xargs -r gunzip -f
+  find ${MANDIR} ! -type l -name "*.gz" | xargs -r gunzip
+fi
+find ${TMP} -type f | xargs file | grep ELF | cut -f1 -d: | xargs -r strip --strip-unneeded
+
+# New Rules: No longer keep .la files
+for PKGLIBDIR in ${TMP}/lib* ${TMP}/usr/lib*; do
+  if [ -d ${PKGLIBDIR} ]; then
+    find ${PKGLIBDIR} -type f -name "*.la" | xargs -r rm
+  fi
+done
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
