@@ -19,6 +19,12 @@ mkdir -p ${TMP}/usr/bin
 cp ${DCBINARY} ${TMP}/usr/bin/${NAME}
 chmod 0755 ${TMP}/usr/bin/docker-compose
 
+mkdir -p ${TMP}/etc/bash_completion.d
+curl -L https://raw.githubusercontent.com/docker/compose/${VERS}/contrib/completion/bash/docker-compose \
+-o ${TMP}/etc/bash_completion.d/docker-compose
+chmod 0755 ${TMP}/etc/bash_completion.d
+chmod 0644 ${TMP}/etc/bash_completion.d/docker-compose
+
 # Package up the modules and clean up
 dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
 rm -rf ${PKG}
