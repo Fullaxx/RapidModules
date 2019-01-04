@@ -42,7 +42,7 @@ docker_setup()
 docker_start()
 {
   echo "Starting Docker: /usr/bin/dockerd &"
-  /usr/bin/dockerd >>/var/log/docker.log 2>&1 &
+  /usr/bin/dockerd -s aufs >>/var/log/docker.log 2>&1 &
 }
 
 docker_stop()
