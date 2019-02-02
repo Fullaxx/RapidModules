@@ -62,6 +62,18 @@ make install DESTDIR=${TMP}
 mkdir -p ${TMP}/usr/doc/${PKG}
 cp AUTHORS COPYING ChangeLog README ${TMP}/usr/doc/${PKG}/
 
+# to fix a bug in MESA ???
+# https://bugs.launchpad.net/ubuntu/+source/freecad/+bug/1754084
+mv ${TMP}/usr/bin/bluefish ${TMP}/usr/bin/bluefish.bin
+cat << EOFF > ${TMP}/usr/bin/bluefish
+#!/bin/bash
+
+# WHY THE F%@& do I need to do this??
+LIBGL_DRI3_DISABLE=true /usr/bin/bluefish.bin "\$@"
+
+EOFF
+chmod 0755 ${TMP}/usr/bin/bluefish
+
 # back out and copy this script to the module
 popd
 mkdir -p ${TMP}/usr/src/rlb
