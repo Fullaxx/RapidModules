@@ -1,0 +1,39 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="rapidconfig-rapidworkstation"
+VERS=`date "+%Y%m%d"`
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+RLBFDIR=`dirname $0`
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+install -D -o root -g root -m 0644 ${RLBFDIR}/RWRLBFILES/htop/htoprc ${TMP}/root/.config/htop/htoprc
+install -D -o root -g root -m 0644 ${RLBFDIR}/RWRLBFILES/gtk-3.0/settings.ini ${TMP}/root/.config/gtk-3.0/settings.ini
+install -D -o root -g root -m 0644 ${RLBFDIR}/RWRLBFILES/mc/ini ${TMP}/root/.config/mc/ini
+install -D -o root -g root -m 0644 ${RLBFDIR}/RWRLBFILES/mc/mc.ext ${TMP}/root/.config/mc/mc.ext
+install -D -o root -g root -m 0644 ${RLBFDIR}/RWRLBFILES/mc/panels.ini ${TMP}/root/.config/mc/panels.ini
+
+install -D -o root -g root -m 0644 ${RLBFDIR}/RWRLBFILES/fbpanel/default ${TMP}/root/.config/fbpanel/default
+install -D -o root -g root -m 0755 ${RLBFDIR}/RWRLBFILES/openbox/autostart ${TMP}/root/.config/openbox/autostart
+install -D -o root -g root -m 0755 ${RLBFDIR}/RWRLBFILES/openbox/environment ${TMP}/root/.config/openbox/environment
+install -D -o root -g root -m 0644 ${RLBFDIR}/RWRLBFILES/openbox/menu.xml ${TMP}/root/.config/openbox/menu.xml
+install -D -o root -g root -m 0644 ${RLBFDIR}/RWRLBFILES/openbox/rc.xml ${TMP}/root/.config/openbox/rc.xml
+
+install -D -o root -g root -m 0644 ${RLBFDIR}/RWRLBFILES/gkrellm2/user-config ${TMP}/root/.gkrellm2/user-config
+install -D -o root -g root -m 0755 ${RLBFDIR}/RWRLBFILES/vnc/xstartup ${TMP}/root/.vnc/xstartup
+
+chown -R root.root ${TMP}
+find ${TMP} -type d -exec chmod 0755 {} \;
+# find ${TMP} -type f -exec chmod 0644 {} \;
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-noarch-${PKGREV}.xzm
+rm -rf ${TMP}
+
+# EOF
