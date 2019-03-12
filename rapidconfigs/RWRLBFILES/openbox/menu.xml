@@ -40,6 +40,11 @@
 			<command>geany</command>
 		</action>
 	</item>
+	<item label="Medit">
+		<action name="Execute">
+			<command>medit</command>
+		</action>
+	</item>
 	<item label="XFileWrite">
 		<action name="Execute">
 			<command>xfw</command>
