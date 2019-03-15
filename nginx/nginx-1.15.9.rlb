@@ -1,0 +1,217 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="nginx"
+VERS="1.15.9"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${PKG}.tar.gz"
+RLBFDIR=`dirname $0`
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+tar xvf ${TARBALL}
+pushd ${PKG}
+
+# Automatically determine the architecture we're building on:
+if [ -z "${ARCH}" ]; then
+  case "$( uname -m )" in
+    #i?86) export ARCH=i486 ;;
+    arm*) export ARCH=arm ;;
+    # Unless ${ARCH} is already set, use uname -m for all other archs:
+       *) export ARCH=$( uname -m ) ;;
+  esac
+fi
+
+LIBDIRSUFFIX=""
+if [ "${ARCH}" = "i486" ]; then
+  SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+elif [ "${ARCH}" = "i686" ]; then
+  SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+elif [ "${ARCH}" = "s390" ]; then
+  SLKCFLAGS="-O2"
+elif [ "${ARCH}" = "x86_64" ]; then
+  SLKCFLAGS="-O2"
+  LIBDIRSUFFIX="64"
+else
+  SLKCFLAGS="-O2"
+fi
+
+# Fix the nginx.conf file for html and virtual server directory.
+sed -i \
+  -e '/root[ ]*html/s|html;|/var/www/&|' \
+  -e '$s|.*|    include /etc/nginx/conf.d/\*.conf;\n&|' conf/${NAME}.conf
+
+#if [ "${USE_GEOIP:-no}" == "yes" ]; then
+#  GEOIP_MOD="--with-http_geoip_module"
+#else
+#  GEOIP_MOD=""
+#fi
+
+CFLAGS="${SLKCFLAGS}" \
+CXXFLAGS="${SLKCFLAGS}" \
+./configure \
+--prefix=/usr \
+--sbin-path=/usr/sbin/nginx \
+--conf-path=/etc/nginx/nginx.conf \
+--pid-path=/var/run/nginx.pid \
+--lock-path=/var/lock/subsys \
+--error-log-path=/var/log/nginx/error.log \
+--http-log-path=/var/log/nginx/access.log \
+--http-client-body-temp-path=/var/lib/nginx/client_body \
+--http-proxy-temp-path=/var/lib/nginx/proxy \
+--http-fastcgi-temp-path=/var/lib/nginx/fastcgi \
+--http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
+--http-scgi-temp-path=/var/lib/nginx/scgi \
+--user=${NGINXUSER:=nobody} \
+--group=${NGINXGROUP:=nogroup} \
+--with-select_module \
+--with-poll_module \
+--with-threads \
+--with-file-aio \
+--with-http_ssl_module \
+--with-http_v2_module \
+--with-http_realip_module \
+--with-http_addition_module \
+--with-http_xslt_module \
+--with-http_sub_module \
+--with-http_dav_module \
+--with-http_flv_module \
+--with-http_mp4_module \
+--with-http_gunzip_module \
+--with-http_gzip_static_module \
+--with-http_auth_request_module \
+--with-http_random_index_module \
+--with-http_secure_link_module \
+--with-http_degradation_module \
+--with-http_slice_module \
+--with-http_stub_status_module \
+--with-http_perl_module \
+--with-mail \
+--with-mail_ssl_module \
+--with-stream \
+--with-stream_ssl_module \
+--with-stream_realip_module \
+--with-stream_ssl_preread_module \
+--with-cpp_test_module \
+--with-compat \
+--with-pcre \
+--with-pcre-jit \
+--with-libatomic
+
+# This does something weird
+# --with-perl_modules_path=/usr/lib64/perl5 \
+
+if [ -n "${CFGSLEEPREVIEW}" ]; then
+  echo
+  echo "Sleeping ${CFGSLEEPREVIEW} seconds to review ..."
+  sleep ${CFGSLEEPREVIEW}
+fi
+
+# create the TMP directory, compile the code and install to $TMP
+make ${MAKEALLCPUS}
+mkdir ${TMP}
+make install DESTDIR=${TMP}
+
+# Documentation
+mkdir -p ${TMP}/usr/doc/${PKG}
+cp -a CHANGES LICENSE README ${TMP}/usr/doc/${PKG}/
+chown -R root.root ${TMP}/usr/doc/${PKG}
+
+# Install nginx.8 manpage
+mkdir -p ${TMP}/usr/man/man8
+install -m 0644 objs/${NAME}.8 ${TMP}/usr/man/man8/
+# find ${TMP}/usr/man -type f -exec gzip -9 {} \;
+
+# Fix location of nginx.3 manpage
+if [ -e ${TMP}/usr/local/share/man/man3/nginx.3 ]; then
+  mkdir -p ${TMP}/usr/man/man3
+  mv ${TMP}/usr/local/share/man/man3/nginx.3 ${TMP}/usr/man/man3
+  rmdir ${TMP}/usr/local/share/man/man3
+  rmdir ${TMP}/usr/local/share/man
+  rmdir ${TMP}/usr/local/share
+fi
+
+# Fix location of perl module
+# Why is perl stuff being installed to /usr/local?
+if [ -d ${TMP}/usr/lib64/perl5 -a -d ${TMP}/usr/local/lib64/perl5 ]; then
+  mv ${TMP}/usr/local/lib64/perl5/* ${TMP}/usr/lib64/perl5/
+  rmdir ${TMP}/usr/local/lib64/perl5
+  rmdir ${TMP}/usr/local/lib64
+  rmdir ${TMP}/usr/local
+fi
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Remove the cruft
+find ${TMP} -name perllocal.pod \
+  -o -name ".packlist" \
+  -o -name "*.bs" \
+  | xargs rm -f
+
+find ${TMP} -perm 444 -exec chmod 0644 {} \;
+find ${TMP} -perm 555 -exec chmod 0755 {} \;
+
+# Make the temp path
+mkdir -p ${TMP}/var/lib/${NAME}
+chmod 0700 ${TMP}/var/lib/${NAME}
+chown ${NGINXUSER}.${NGINXGROUP} ${TMP}/var/lib/${NAME}
+
+# Move html directory
+mkdir -p ${TMP}/var/www
+mv ${TMP}/usr/html ${TMP}/var/www
+
+# Add an init script
+mkdir -p ${TMP}/etc/rc.d
+cat ${RLBFDIR}/RLBFILES/rc.nginx > ${TMP}/etc/rc.d/rc.nginx
+chmod 0755 ${TMP}/etc/rc.d/rc.nginx
+
+# Install a logrotate conf file
+mkdir -p ${TMP}/etc/logrotate.d
+sed -e "s,@USER@,${NGINXUSER}," -e "s,@GROUP@,${NGINXGROUP}," \
+${RLBFDIR}/RLBFILES/nginx.logrotate > ${TMP}/etc/logrotate.d/nginx
+chmod 0644 ${TMP}/etc/logrotate.d/nginx
+
+# Set the permissions for the log directory.
+chown ${NGINXUSER}.${NGINXGROUP} ${TMP}/var/log/${NAME}
+chmod 750 ${TMP}/var/log/${NAME}
+
+# Create sub-directory for virtual servers.
+mkdir ${TMP}/etc/${NAME}/conf.d
+
+# Remove empty /var/run dir
+if [ -d ${TMP}/var/run ]; then
+  rmdir ${TMP}/var/run
+fi
+
+# Make sure this module follows "the rules"
+find ${TMP} -type d | xargs chmod -v 755
+MANDIR=`find ${TMP} -type d -name man`
+if [ x"${MANDIR}" != "x" ]; then
+  find ${MANDIR} -type l -name "*.gz" | xargs -r gunzip -f
+  find ${MANDIR} ! -type l -name "*.gz" | xargs -r gunzip
+fi
+find ${TMP} -type f | xargs file | grep ELF | cut -f1 -d: | xargs -r strip --strip-unneeded
+
+# New Rules: No longer keep .la files
+for PKGLIBDIR in ${TMP}/lib* ${TMP}/usr/lib*; do
+  if [ -d ${PKGLIBDIR} ]; then
+    find ${PKGLIBDIR} -type f -name "*.la" | xargs -r rm
+  fi
+done
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
