@@ -18,6 +18,8 @@ if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
 tar xvf ${TARBALL}
 pushd ${PKG}
+git clone https://github.com/slact/nchan.git
+CWD=`pwd`
 
 # Automatically determine the architecture we're building on:
 if [ -z "${ARCH}" ]; then
@@ -103,7 +105,8 @@ CXXFLAGS="${SLKCFLAGS}" \
 --with-compat \
 --with-pcre \
 --with-pcre-jit \
---with-libatomic
+--with-libatomic \
+--add-module=${CWD}/nchan
 
 # This does something weird
 # --with-perl_modules_path=/usr/lib64/perl5 \
