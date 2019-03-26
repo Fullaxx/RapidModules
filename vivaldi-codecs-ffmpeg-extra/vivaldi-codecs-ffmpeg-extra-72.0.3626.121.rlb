@@ -1,0 +1,64 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="vivaldi-codecs-ffmpeg-extra"
+VERS="72.0.3626.121"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ -z "${ARCH}" ]; then
+  case "$( uname -m )" in
+    i?86) ARCH=i586 ;;
+    arm*) ARCH=arm ;;
+       *) ARCH=$( uname -m ) ;;
+  esac
+fi
+
+case "${ARCH}" in
+    i?86) BITS="i386" ;;
+  x86_64) BITS="amd64" ;;
+    arm*) BITS="armhf" ;;
+       *) echo "${ARCH} is not supported."
+          exit 1 ;;
+esac
+
+# Set this to Y if you want to overwrite the original /opt/vivaldi/lib/libffmpeg.so
+# otherwise this will live in /opt/vivaldi
+REPLACEFFMPEGLIB="N"
+DEBFILE="${PKGDIR}/chromium-codecs-ffmpeg-extra_${VERS}-*_${BITS}.deb"
+
+if [ ! -e ${DEBFILE} ]; then echo "${DEBFILE} doesnt exist, exiting..."; exit 1; fi
+if [ ${REPLACEFFMPEGLIB} == "Y" ]; then
+  mkdir -p ${TMP}/opt/vivaldi/lib
+  cp ${PKGDIR}/${DEBFILE} ${TMP}/opt/vivaldi/lib/
+  pushd ${TMP}/opt/vivaldi/lib
+else
+  mkdir -p ${TMP}/opt/vivaldi
+  cp ${PKGDIR}/${DEBFILE} ${TMP}/opt/vivaldi/
+  pushd ${TMP}/opt/vivaldi
+fi
+ar p ${DEBFILE} data.tar.xz | tar Jxf - ./usr/lib/chromium-browser/libffmpeg.so
+rm ${DEBFILE}
+mv usr/lib/chromium-browser/libffmpeg.so ./
+rmdir usr/lib/chromium-browser
+rmdir usr/lib
+rmdir usr
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
