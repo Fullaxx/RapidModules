@@ -199,6 +199,7 @@
 <menu id="root-menu" label="Openbox 3">
 	<separator label="Quick Access" />
 	<item label="Hyper"><action name="Execute"><command>hyper</command></action></item>
+	<item label="ST"><action name="Execute"><command>st</command></action></item>
 	<separator label="Applications" />
 	<menu id="apps-browsers-menu"/>
 	<menu id="apps-fileman-menu"/>
