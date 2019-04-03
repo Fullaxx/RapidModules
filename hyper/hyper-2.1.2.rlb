@@ -1,0 +1,29 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="hyper"
+VERS="2.1.2"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+# Download the AppImage
+mkdir -p ${TMP}/opt/AI
+URL="https://github.com/zeit/hyper/releases/download/2.1.2/hyper-2.1.2-x86_64.AppImage"
+( set -e; cd ${TMP}/opt/AI; wget ${URL}; chmod +x ${TMP}/opt/AI/*.AppImage )
+
+# copy this script to the module
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
+rm -rf ${NAME}
+rm -rf ${TMP}
+
+# EOF
