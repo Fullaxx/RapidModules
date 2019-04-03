@@ -17,13 +17,21 @@ mkdir -p ${TMP}/opt/AI
 URL="https://github.com/zeit/hyper/releases/download/2.1.2/hyper-2.1.2-x86_64.AppImage"
 ( set -e; cd ${TMP}/opt/AI; wget ${URL}; chmod +x ${TMP}/opt/AI/*.AppImage )
 
+# Instead of a symlink, lets create a bash script
+mkdir -p ${TMP}/usr/bin
+cat << EOFF > ${TMP}/usr/bin/hyper
+#!/bin/bash
+
+/opt/AI/hyper-${VERS}-x86_64.AppImage
+EOFF
+chmod 0755 ${TMP}/usr/bin/hyper
+
 # copy this script to the module
 mkdir -p ${TMP}/usr/src/rlb
 cp $0 ${TMP}/usr/src/rlb
 
 # Package up the modules and clean up
 dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
-rm -rf ${NAME}
 rm -rf ${TMP}
 
 # EOF
