@@ -113,6 +113,11 @@
 </menu>
 
 <menu id="apps-terminals-menu" label="Terminals">
+	<item label="Hyper">
+		<action name="Execute">
+			<command>hyper</command>
+		</action>
+	</item>
 	<item label="Eterm">
 		<action name="Execute">
 			<command>Eterm --double-buffer</command>
@@ -193,7 +198,7 @@
 
 <menu id="root-menu" label="Openbox 3">
 	<separator label="Quick Access" />
-	<item label="Eterm"><action name="Execute"><command>Eterm --double-buffer -P none</command></action></item>
+	<item label="Hyper"><action name="Execute"><command>hyper</command></action></item>
 	<separator label="Applications" />
 	<menu id="apps-browsers-menu"/>
 	<menu id="apps-fileman-menu"/>
