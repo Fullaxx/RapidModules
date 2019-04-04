@@ -13,6 +13,11 @@
 			<command>google-chrome</command>
 		</action>
 	</item>
+	<item label="Chrome (No Sandbox)">
+		<action name="Execute">
+			<command>google-chrome --no-sandbox</command>
+		</action>
+	</item>
 </menu>
 
 <menu id="apps-fileman-menu" label="File Managers">
@@ -113,9 +118,19 @@
 </menu>
 
 <menu id="apps-terminals-menu" label="Terminals">
+	<item label="xterm">
+		<action name="Execute">
+			<command>xterm</command>
+		</action>
+	</item>
 	<item label="Hyper">
 		<action name="Execute">
 			<command>hyper</command>
+		</action>
+	</item>
+	<item label="ST">
+		<action name="Execute">
+			<command>st</command>
 		</action>
 	</item>
 	<item label="Eterm">
@@ -126,11 +141,6 @@
 	<item label="Eterm Black">
 		<action name="Execute">
 			<command>Eterm --double-buffer -P none</command>
-		</action>
-	</item>
-	<item label="ST">
-		<action name="Execute">
-			<command>st</command>
 		</action>
 	</item>
 </menu>
@@ -183,6 +193,15 @@
 	</item>
 </menu>
 
+<menu id="apps-RE-menu" label="Reverse Engineering">
+	<item label="Cutter">
+		<action name="Execute">
+			<command>cutter</command>
+			<startupnotify><enabled>yes</enabled></startupnotify>
+		</action>
+	</item>
+</menu>
+
 <menu id="system-menu" label="System">
 	<item label="Openbox Configuration Manager">
 		<action name="Execute">
@@ -198,6 +217,7 @@
 
 <menu id="root-menu" label="Openbox 3">
 	<separator label="Quick Access" />
+	<item label="xterm"><action name="Execute"><command>xterm</command></action></item>
 	<item label="Hyper"><action name="Execute"><command>hyper</command></action></item>
 	<item label="ST"><action name="Execute"><command>st</command></action></item>
 	<separator label="Applications" />
@@ -208,6 +228,7 @@
 	<menu id="apps-terminals-menu"/>
 	<menu id="apps-utils-menu"/>
 	<menu id="apps-graphics-menu"/>
+	<menu id="apps-RE-menu"/>
 	<separator label="System" />
 	<menu id="system-menu"/>
 	<separator />
