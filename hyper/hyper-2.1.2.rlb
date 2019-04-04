@@ -14,8 +14,8 @@ if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
 # Download the AppImage
 mkdir -p ${TMP}/opt/AI
-URL="https://github.com/zeit/hyper/releases/download/2.1.2/hyper-2.1.2-x86_64.AppImage"
-( set -e; cd ${TMP}/opt/AI; wget ${URL}; chmod +x ${TMP}/opt/AI/*.AppImage )
+URL="https://github.com/zeit/hyper/releases/download/${VERS}/{PKG}-x86_64.AppImage"
+( set -e; cd ${TMP}/opt/AI; wget ${URL}; chmod 0755 ${TMP}/opt/AI/*.AppImage )
 
 # Create a symlink from /usr/bin
 mkdir -p ${TMP}/usr/bin
