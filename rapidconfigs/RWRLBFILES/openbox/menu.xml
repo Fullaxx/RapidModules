@@ -45,6 +45,11 @@
 			<command>geany</command>
 		</action>
 	</item>
+	<item label="Netbeans">
+		<action name="Execute">
+			<command>netbeans</command>
+		</action>
+	</item>
 	<item label="VSCode">
 		<action name="Execute">
 			<command>/usr/bin/vscode</command>
