@@ -1,0 +1,32 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="cutter"
+VERS="1.8.0"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+# Download the AppImage
+mkdir -p ${TMP}/opt/AI
+URL="https://github.com/radareorg/cutter/releases/download/v${VERS}/Cutter-v${VERS}-x64.Linux.AppImage"
+( set -e; cd ${TMP}/opt/AI; wget ${URL}; chmod 0755 ${TMP}/opt/AI/*.AppImage )
+
+# Create a symlink from /usr/bin
+mkdir -p ${TMP}/usr/bin
+ln -s /opt/AI/Cutter-v${VERS}-x64.Linux.AppImage ${TMP}/usr/bin/${NAME}
+
+# copy this script to the module
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
+rm -rf ${TMP}
+
+# EOF
