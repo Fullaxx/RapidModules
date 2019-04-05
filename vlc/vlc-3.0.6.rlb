@@ -10,6 +10,7 @@ PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
 TARBALL="${PKGDIR}/${PKG}.tar.xz"
+RLBFDIR=`dirname $0`
 TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
@@ -17,6 +18,11 @@ if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
 tar xvf ${TARBALL}
 pushd ${PKG}
+
+# Hopefully this will be unnecessary in the future
+if [ ${VERS} == "3.0.6" ]; then
+  patch modules/access/sftp.c ${RLBFDIR}/RLBFILES/patch_ECDSA.diff
+fi
 
 # Automatically determine the architecture we're building on:
 if [ -z "${ARCH}" ]; then
