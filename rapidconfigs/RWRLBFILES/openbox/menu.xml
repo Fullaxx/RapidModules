@@ -181,6 +181,11 @@
 			<command>Eterm -T AlsaMixer -g 160x48 -e alsamixer</command>
 		</action>
 	</item>
+	<item label="Graveman">
+		<action name="Execute">
+			<command>graveman</command>
+		</action>
+	</item>
 </menu>
 
 <menu id="apps-graphics-menu" label="Graphics">
