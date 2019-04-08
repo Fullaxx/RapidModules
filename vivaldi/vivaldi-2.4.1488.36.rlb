@@ -1,0 +1,36 @@
+#!/bin/bash
+
+set -e
+
+NAME="vivaldi"
+VERS="2.4.1488.36"
+PKGDIR=${PKGDIR:-.}
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+# Automatically determine the architecture we're building on:
+if [ -z "${ARCH}" ]; then
+  ARCH="$( uname -m )"
+fi
+
+case "${ARCH}" in
+  x32) PKGARCH="i386" ;;
+  x86) PKGARCH="i386" ;;
+  i?86) PKGARCH="i386" ;;
+  x64) PKGARCH="x86_64" ;;
+  x86_64) PKGARCH="x86_64" ;;
+  amd64) PKGARCH="x86_64" ;;
+  *) echo "Unknown Version: ${ARCH}"; exit 1 ;;
+esac
+
+PKG="${NAME}-stable-${VERS}-1.${PKGARCH}.rpm"
+SLACKPKGFILENAME=`echo ${PKG} | sed -e 's/rpm/txz/'`
+RLPKGFILENAME=`echo ${PKG} | sed -e 's/rpm/xzm/'`
+
+if [ ! -f "${PKGDIR}/${PKG}" ]; then
+  echo "${PKGDIR}/${PKG} not found!"
+  exit 1
+fi
+
+rpm2txz "${PKGDIR}/${PKG}" && \
+txz2xzm "${SLACKPKGFILENAME}" "${RLPKGFILENAME}" && \
+rm "${SLACKPKGFILENAME}"
