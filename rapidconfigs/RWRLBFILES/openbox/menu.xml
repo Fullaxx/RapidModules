@@ -10,12 +10,7 @@
 	</item>
 	<item label="Chrome">
 		<action name="Execute">
-			<command>google-chrome</command>
-		</action>
-	</item>
-	<item label="Chrome (No Sandbox)">
-		<action name="Execute">
-			<command>google-chrome --no-sandbox</command>
+			<command>rl_launch_chrome_home.sh</command>
 		</action>
 	</item>
 </menu>
@@ -133,19 +128,24 @@
 			<command>hyper</command>
 		</action>
 	</item>
-	<item label="ST">
+	<item label="Archipelago">
 		<action name="Execute">
-			<command>st -f DejaVuSansMono</command>
-		</action>
-	</item>
-	<item label="Eterm">
-		<action name="Execute">
-			<command>Eterm --double-buffer</command>
+			<command>archipelago</command>
 		</action>
 	</item>
 	<item label="Eterm Black">
 		<action name="Execute">
 			<command>Eterm --double-buffer -P none</command>
+		</action>
+	</item>
+	<item label="Terminology">
+		<action name="Execute">
+			<command>terminology</command>
+		</action>
+	</item>
+	<item label="ST">
+		<action name="Execute">
+			<command>st -f DejaVuSansMono</command>
 		</action>
 	</item>
 </menu>

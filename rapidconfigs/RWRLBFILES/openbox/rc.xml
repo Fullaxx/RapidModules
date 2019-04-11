@@ -317,9 +317,9 @@
       <action name="Execute">
         <startupnotify>
           <enabled>true</enabled>
-          <name>Eterm</name>
+          <name>xterm</name>
         </startupnotify>
-        <command>Eterm --double-buffer -P none</command>
+        <command>xterm</command>
       </action>
     </keybind>
   </keyboard>
