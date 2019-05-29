@@ -5,7 +5,7 @@
 set -e
 
 NAME="qemu"
-VERS="2.12.1"
+VERS="3.0.1"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}

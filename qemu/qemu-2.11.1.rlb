@@ -119,7 +119,7 @@ fi
 # Unnecessary in 2.11.1
 # make config-all-devices.mak config-all-disas.mak
 
-# create the TMP directory, compile the code and install to $TMP
+# create the TMP directory, compile the code and install to ${TMP}
 # make V=1 for verbose
 make ${MAKEALLCPUS} mandir=/usr/man docdir=/usr/doc/${PKG}
 mkdir ${TMP}
