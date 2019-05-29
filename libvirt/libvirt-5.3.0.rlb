@@ -5,7 +5,7 @@
 set -e
 
 NAME="libvirt"
-VERS="4.9.0"
+VERS="5.3.0"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
