@@ -53,7 +53,7 @@ CFLAGS="${SLKCFLAGS}" \
 --disable-update-databases \
 --without-libgnomeui
 
-# create the TMP directory, compile the code and install to $TMP
+# create the TMP directory, compile the code and install to ${TMP}
 make ${MAKEALLCPUS}
 mkdir ${TMP}
 make install DESTDIR=${TMP}
