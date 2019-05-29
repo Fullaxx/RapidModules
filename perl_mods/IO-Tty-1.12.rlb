@@ -42,7 +42,7 @@ else
   SLKCFLAGS="-O2"
 fi
 
-# create the TMP directory, compile the code and install to $TMP
+# create the TMP directory, compile the code and install to ${TMP}
 perl Makefile.PL
 make
 make test

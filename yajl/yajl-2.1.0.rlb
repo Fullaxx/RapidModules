@@ -43,7 +43,7 @@ else
   SLKCFLAGS="-O2"
 fi
 
-# create the TMP directory, compile the code and install to $TMP
+# create the TMP directory, compile the code and install to ${TMP}
 mkdir -p ${TMP}/usr
 ./configure -p /usr
 make ${MAKEALLCPUS}
