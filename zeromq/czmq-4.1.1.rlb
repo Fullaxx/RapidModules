@@ -60,7 +60,7 @@ fi
 --with-libsystemd=no \
 --with-liblz4=yes
 
-# create the TMP directory, compile the code and install to $TMP
+# create the TMP directory, compile the code and install to ${TMP}
 make V=1 ${MAKEALLCPUS}
 make check
 mkdir ${TMP}
