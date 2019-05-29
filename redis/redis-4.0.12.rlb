@@ -46,7 +46,7 @@ fi
 # http://lists.slackbuilds.org/pipermail/slackbuilds-users/2013-January/010042.html
 # http://lists.slackbuilds.org/pipermail/slackbuilds-users/2012-September/009230.html
 
-# create the TMP directory, compile the code and install to $TMP
+# create the TMP directory, compile the code and install to ${TMP}
 (
   unset ARCH
   make ${MAKEALLCPUS}
