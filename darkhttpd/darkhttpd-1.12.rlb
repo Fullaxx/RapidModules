@@ -42,7 +42,7 @@ else
   SLKCFLAGS="-O2"
 fi
 
-# create the TMP directory, compile the code and install to $TMP
+# create the TMP directory, compile the code and install to ${TMP}
 CFLAGS="${SLKCFLAGS}" make ${MAKEALLCPUS}
 mkdir -p ${TMP}/usr/bin ${TMP}/usr/doc/${PKG}
 cp README ${TMP}/usr/doc/${PKG}/

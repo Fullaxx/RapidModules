@@ -55,7 +55,7 @@ else
   sed -e 's@^LIBDIR= /usr/lib@LIBDIR= $(DESTDIR)/usr/lib@' -i Makefile
 fi
 
-# create the TMP directory, compile the code and install to $TMP
+# create the TMP directory, compile the code and install to ${TMP}
 make ${MAKEALLCPUS}
 mkdir ${TMP}
 make install DESTDIR=${TMP}

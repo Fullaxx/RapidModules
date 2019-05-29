@@ -28,7 +28,7 @@ if [ -z "${ARCH}" ]; then
   esac
 fi
 
-# create the TMP directory, compile the code and install to $TMP
+# create the TMP directory, compile the code and install to ${TMP}
 sed -e 's@PREFIX=/usr/local@PREFIX=/usr@' -i Makefile
 sed -e 's@BINDIR=$(PREFIX)/bin@BINDIR=$(PREFIX)/bin@' -i Makefile
 sed -e 's@MAN1DIR=$(PREFIX)/share/man@MAN1DIR=$(PREFIX)/man@' -i Makefile

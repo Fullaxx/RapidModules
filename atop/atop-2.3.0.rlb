@@ -32,7 +32,7 @@ fi
 sed -e 's@/usr/share/man/man@/usr/man/man@g' -i Makefile
 sed -e 's@#include <sys/ipc.h>@#include <sys/sysmacros.h>\n#include <sys/ipc.h>@' -i photosyst.c
 
-# create the TMP directory, compile the code and install to $TMP
+# create the TMP directory, compile the code and install to ${TMP}
 make ${MAKEALLCPUS}
 mkdir ${TMP}
 make sysvinstall DESTDIR=${TMP}

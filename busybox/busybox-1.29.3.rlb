@@ -43,7 +43,7 @@ fi
 # Copy in the config
 cp "$1" ./.config
 
-# create the TMP directory, compile the code and install to $TMP
+# create the TMP directory, compile the code and install to ${TMP}
 make ${MAKEALLCPUS}
 mkdir -p ${TMP}/sbin
 install -D -m 0755 busybox ${TMP}/sbin/

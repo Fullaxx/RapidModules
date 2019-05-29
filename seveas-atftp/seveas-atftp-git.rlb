@@ -55,7 +55,7 @@ fi
 --enable-libpcre \
 --enable-mtftp
 
-# create the TMP directory, compile the code and install to $TMP
+# create the TMP directory, compile the code and install to ${TMP}
 make ${MAKEALLCPUS}
 strip atftp atftpd
 mkdir ${TMP}
