@@ -20,7 +20,7 @@ rm -r ${PKG}/.gitmodules
 rm -r ${PKG}/.travis.yml
 rm -r ${PKG}/Windows
 
-# create the TMP directory, clone and install to $TMP
+# create the TMP directory, clone and install to ${TMP}
 mkdir -p ${TMP}/opt ${TMP}/usr/src/rlb
 cp $0 ${TMP}/usr/src/rlb
 mv ${PKG} ${TMP}/opt/${NAME}
