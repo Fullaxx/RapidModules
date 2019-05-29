@@ -64,7 +64,7 @@ if [ -n "${CFGSLEEPREVIEW}" ]; then
   sleep ${CFGSLEEPREVIEW}
 fi
 
-# create the TMP directory, compile the code and install to $TMP
+# create the TMP directory, compile the code and install to ${TMP}
 CFLAGS="${SLKCFLAGS}" CXXFLAGS="${SLKCFLAGS}" make ${MAKEALLCPUS}
 mkdir ${TMP}
 make ${MAKEALLCPUS} install DESTDIR=${TMP}
