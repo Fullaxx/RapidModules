@@ -22,9 +22,9 @@
 			<startupnotify><enabled>yes</enabled></startupnotify>
 		</action>
 	</item>
-	<item label="Midnight Commander (Eterm)">
+	<item label="Midnight Commander (xterm)">
 		<action name="Execute">
-			<command>Eterm -T MidnightCommander -g 160x48 -e mc</command>
+			<command>xterm -T MidnightCommander -g 160x48 -e mc</command>
 		</action>
 	</item>
 </menu>
@@ -128,6 +128,11 @@
 			<command>terminator</command>
 		</action>
 	</item>
+	<item label="Diarrhouea">
+		<action name="Execute">
+			<command>diarrhouea</command>
+		</action>
+	</item>
 	<item label="Hyper">
 		<action name="Execute">
 			<command>hyper</command>
@@ -136,11 +141,6 @@
 	<item label="Archipelago">
 		<action name="Execute">
 			<command>archipelago</command>
-		</action>
-	</item>
-	<item label="Eterm Black">
-		<action name="Execute">
-			<command>Eterm --double-buffer -P none</command>
 		</action>
 	</item>
 	<item label="Terminology">
@@ -171,19 +171,19 @@
 			<command>pavucontrol</command>
 		</action>
 	</item>
-	<item label="calc (Eterm)">
+	<item label="calc (xterm)">
 		<action name="Execute">
-			<command>Eterm -T calc -g 100x30 -e calc</command>
+			<command>xterm -T calc -g 100x30 -e calc</command>
 		</action>
 	</item>
-	<item label="Htop (Eterm)">
+	<item label="Htop (xterm)">
 		<action name="Execute">
-			<command>Eterm -T Htop -g 160x48 -e htop</command>
+			<command>xterm -T Htop -g 160x48 -e htop</command>
 		</action>
 	</item>
-	<item label="AlsaMixer (Eterm)">
+	<item label="AlsaMixer (xterm)">
 		<action name="Execute">
-			<command>Eterm -T AlsaMixer -g 160x48 -e alsamixer</command>
+			<command>xterm -T AlsaMixer -g 160x48 -e alsamixer</command>
 		</action>
 	</item>
 	<item label="Graveman">
@@ -233,8 +233,7 @@
 <menu id="root-menu" label="Openbox 3">
 	<separator label="Quick Access" />
 	<item label="xterm"><action name="Execute"><command>xterm</command></action></item>
-	<item label="Hyper"><action name="Execute"><command>hyper</command></action></item>
-	<item label="Eterm Black"><action name="Execute"><command>Eterm --double-buffer -P none</command></action></item>
+	<item label="Terminator"><action name="Execute"><command>terminator</command></action></item>
 	<separator label="Applications" />
 	<menu id="apps-browsers-menu"/>
 	<menu id="apps-fileman-menu"/>
