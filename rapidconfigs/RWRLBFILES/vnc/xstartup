@@ -1,3 +1,8 @@
 #!/bin/bash
 
+# https://tigervnc.org/doc/vncconfig.html
+# /usr/bin/vncconfig -iconic &
+/usr/bin/vncconfig -nowin &
+
+# Start Openbox
 exec /usr/bin/openbox-session
