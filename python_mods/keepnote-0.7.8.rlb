@@ -49,8 +49,8 @@ mkdir ${TMP}
 python setup.py install --root=${TMP}
 # python3 setup.py install --root=${TMP}
 
-# Remove locales
-rm -rf ${TMP}/usr/lib${LIBDIRSUFFIX}/python?.?/site-packages/keepnote/rc/locale
+# Remove locales (This will break keepnote)
+# rm -rf ${TMP}/usr/lib${LIBDIRSUFFIX}/python?.?/site-packages/keepnote/rc/locale
 
 # back out and copy this script to the module
 popd
