@@ -4,7 +4,7 @@
 
 set -e
 
-NAME="mbedtls-csrp"
+NAME="mbedtls-csrp-sdrsdr"
 VERS=`date "+%Y%m%d"`
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
@@ -14,8 +14,9 @@ if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
 mkdir -p ${TMP}/opt/codex
 pushd ${TMP}/opt/codex
-git clone https://github.com/dwimberger/mbedtls-csrp.git ${NAME}
+git clone https://github.com/sdrsdr/mbedtls-csrp.git ${NAME}
 rm -r ${NAME}/.git
+rm ${NAME}/test/.gitignore
 
 # back out and copy this script to the module
 popd

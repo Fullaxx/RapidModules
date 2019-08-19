@@ -1,0 +1,30 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="mbedtls-csrp-dwimberger"
+VERS=`date "+%Y%m%d"`
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+mkdir -p ${TMP}/opt/codex
+pushd ${TMP}/opt/codex
+git clone https://github.com/dwimberger/mbedtls-csrp.git ${NAME}
+rm -r ${NAME}/.git
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-noarch-${PKGREV}.xzm
+rm -rf ${NAME}
+rm -rf ${TMP}
+
+# EOF
