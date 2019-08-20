@@ -59,6 +59,15 @@ make ${MAKEALLCPUS}
 mkdir ${TMP}
 make install DESTDIR=${TMP}
 
+# Install a helper script
+# install -D -o root -g root -m 0755 ${RLBFDIR}/RLBFILES/rl_mount_nextcloud.sh ${TMP}/usr/bin/
+
+cat << EOFF > ${TMP}/usr/doc/${PKG}/example.txt
+/sbin/mount.davfs -o noexec,nodev,nosuid http://nextcloud.service/remote.php/webdav/ /mnt/dav/
+/sbin/umount.davfs http://nextcloud.service/remote.php/webdav/
+EOFF
+chmod 0644 ${TMP}/usr/doc/${PKG}/example.txt
+
 # Clean up a little
 rm -rf ${TMP}/usr/man/{de,es}
 rm ${TMP}/usr/doc/${PKG}/INSTALL
