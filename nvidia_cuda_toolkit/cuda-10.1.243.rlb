@@ -1,0 +1,85 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="cuda"
+VERS="10.1.243"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+NVINSTSCRIPT="${PKGDIR}/cuda_10.1.243_418.87.00_linux.run"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${NVINSTSCRIPT} ]; then echo "${NVINSTSCRIPT} doesnt exist, exiting..."; exit 1; fi
+
+CUDATMP=${CUDATMP:-/tmp/CUDATMP}
+CUDASILENT="--silent"
+CUDAOVERRIDE="--override"
+CUDANOOGLLIBS="--no-opengl-libs"
+
+# Make our directories
+mkdir ${CUDATMP}
+mkdir -p ${TMP}/opt ${TMP}/usr/src/rlb
+CUDALOC="${TMP}/opt/cuda"
+
+# Install RLB script and the cuda toolkit
+cp $0 ${TMP}/usr/src/rlb/
+${NVINSTSCRIPT} \
+--tmpdir=${CUDATMP} \
+--toolkit \
+--toolkitpath=${CUDALOC} \
+--samples \
+--samplespath=${CUDALOC}/samples \
+${CUDASILENT} \
+${CUDAOVERRIDE} \
+${CUDANOOGLLIBS}
+
+mkdir -p ${TMP}/etc/profile.d
+cat << EOFF > ${TMP}/etc/profile.d/rl_cuda.sh
+#!/bin/sh
+
+export PATH="\${PATH}:/opt/cuda/bin"
+EOFF
+chmod 0755 ${TMP}/etc/profile.d/rl_cuda.sh
+
+# Fix permissions
+find ${TMP} -type d -exec chmod -s {} \;
+find ${TMP}/opt/cuda/include -type f -exec chmod 0644 {} \;
+
+# Make sure the system knows where to find cuda libs
+mkdir -p ${TMP}/etc/ld.so.conf.d/
+cat << EOFF > ${TMP}/etc/ld.so.conf.d/cuda-x86_64.conf
+/opt/cuda/lib64
+EOFF
+chmod 0644 ${TMP}/etc/ld.so.conf.d/cuda-x86_64.conf
+
+# Fix the samples
+SAMPTMP="/tmp/cuda_samples-mod-$$"
+find ${TMP}/opt/cuda/samples -type f -name Makefile \
+-exec sed -e "s@${TMP}/opt/cuda@/opt/cuda@g" -i {} \;
+mkdir -p ${SAMPTMP}/opt/cuda
+mv ${TMP}/opt/cuda/samples ${SAMPTMP}/opt/cuda/
+dir2xzm ${SAMPTMP} cuda_samples-${VERS}-noarch-${PKGREV}.xzm
+rm -rf ${SAMPTMP}
+
+# Make CudaLibs
+CLTMP="/tmp/cudalibs-mod-$$"
+mkdir -p ${CLTMP}/opt/cuda/targets
+cp -av ${TMP}/etc ${CLTMP}/
+cp -a ${TMP}/opt/cuda/lib64 ${CLTMP}/opt/cuda/
+cp -a ${TMP}/opt/cuda/targets/x86_64-linux/ ${CLTMP}/opt/cuda/targets/
+rm -rf ${CLTMP}/opt/cuda/targets/x86_64-linux/include
+rm ${CLTMP}/opt/cuda/targets/x86_64-linux/lib/*.a
+dir2xzm ${CLTMP} cudalibs-${VERS}-noarch-${PKGREV}.xzm
+rm -rf ${CLTMP}
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${NAME}-${VERS}-x86_64-${PKGREV}.xzm
+rm -rf ${TMP}
+rm -rf ${CUDATMP}
+
+# EOF
