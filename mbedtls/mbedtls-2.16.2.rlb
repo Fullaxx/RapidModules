@@ -73,6 +73,9 @@ mkdir ${TMP}
 make install DESTDIR=${TMP}
 cd ..
 
+# Fix permissions
+chmod 0644 ${TMP}/usr/lib${LIBDIRSUFFIX}/*
+
 # Documentation (needs doxygen)
 ( cd doxygen; doxygen mbedtls.doxyfile )
 mkdir -p ${TMP}/usr/doc/${PKG}
