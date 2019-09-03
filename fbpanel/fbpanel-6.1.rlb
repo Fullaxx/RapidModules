@@ -10,6 +10,7 @@ PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
 TARBALL="${PKGDIR}/${PKG}.tbz2"
+RLBFDIR=`dirname $0`
 TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
@@ -52,7 +53,7 @@ LIBSTOLINK="-lX11 -lgdk_pixbuf-2.0 -lgobject-2.0 -lgtk-x11-2.0 -lgdk-x11-2.0 -lm
 --mandir=/usr/man \
 --infodir=/usr/info \
 --libdir=/usr/lib${LIBDIRSUFFIX} \
---ldflagsx="$LIBSTOLINK"
+--ldflagsx="${LIBSTOLINK}"
 
 # create the TMP directory, compile the code and install to ${TMP}
 make ${MAKEALLCPUS}
@@ -61,6 +62,9 @@ make install DESTDIR=${TMP}
 
 mkdir -p ${TMP}/usr/doc/${PKG}
 cp CHANGELOG COPYING CREDITS INSTALL NOTES README ${TMP}/usr/doc/${PKG}/
+
+# Disable Volume Plugin
+patch ${TMP}/usr/share/fbpanel/default ${RLBFDIR}/RLBFILES/no_volume.diff
 
 # Fix the permissions on the shared libraries
 chmod 0644 $TMP/usr/lib64/fbpanel/*

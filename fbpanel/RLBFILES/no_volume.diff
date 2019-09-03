@@ -1,0 +1,15 @@
+--- default	2018-05-25 08:12:28.000000000 -0600
++++ default.new	2019-09-03 16:36:39.992297680 -0600
+@@ -313,9 +313,9 @@
+     }
+ }
+ 
+-plugin {
+-    type = volume
+-}
++#plugin {
++#    type = volume
++#}
+ 
+ #plugin {
+ #    type = battery
