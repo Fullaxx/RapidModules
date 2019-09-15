@@ -7,7 +7,7 @@ set -e
 NAME="chrome"
 TMP="/tmp/chrome-buildmod-$$"
 SCRIPTDIR=`dirname $0`
-BUILDSCRIPT="google-chrome.SlackBuild-150304"
+BUILDSCRIPT="google-chrome.SlackBuild-190911"
 
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
