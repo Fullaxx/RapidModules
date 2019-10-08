@@ -1,0 +1,46 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="maven"
+VERS="3.6.2"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/apache-${PKG}-bin.tar.gz"
+# RLBFDIR=`dirname $0`
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+
+mkdir -p ${TMP}/opt ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+tar xvf ${TARBALL} -C ${TMP}/opt
+mv ${TMP}/opt/apache-${PKG} ${TMP}/opt/maven
+rm -rf ${TMP}/opt/maven/lib/jansi-native/freebsd??
+rm -rf ${TMP}/opt/maven/lib/jansi-native/osx
+rm -rf ${TMP}/opt/maven/lib/jansi-native/windows??
+
+mkdir -p ${TMP}/etc/profile.d
+cat << EOFF > ${TMP}/etc/profile.d/maven.sh
+#!/bin/bash
+
+export PATH="\${PATH}:/opt/maven/bin"
+EOFF
+chmod 0755 ${TMP}/etc/profile.d/maven.sh
+
+# Fix Permissions
+chown -R root.root ${TMP}
+find ${TMP} -type d -exec chmod -s {} \;
+find ${TMP} -type d -exec chmod 0755 {} \;
+find ${TMP}/opt/maven/{boot,conf,lib} -type f -exec chmod 0644 {} \;
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-noarch-${PKGREV}.xzm
+rm -rf ${TMP}
+
+# EOF
