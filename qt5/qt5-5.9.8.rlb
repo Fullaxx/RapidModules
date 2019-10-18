@@ -1,0 +1,307 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+bail()
+{
+  echo "$1: $?"
+  exit 1
+}
+
+NAME="qt5"
+VERS="5.9.8"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/qt-everywhere-opensource-src-${VERS}.tar.xz"
+RLBFDIR=`dirname $0`
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+# Activate ninja (to build python things)
+if [ ! -x /usr/bin/ninja ]; then
+  echo "I need /usr/bin/ninja from ninja-*.txz to build python things"
+  exit 1
+fi
+
+EXAMPLES=${EXAMPLES:-no}
+DOCS=${DOCS:-no}
+PROPRIETARY_CODECS=${PROPRIETARY_CODECS:-no}
+PULSEAUDIO=${PULSEAUDIO:-yes}
+CCACHE=${CCACHE:-no}
+WEBENGINE=${WEBENGINE:-yes}
+
+if [ "${WEBENGINE}" == "no" ]; then
+  EXCLUDE="--exclude=qtweb*"
+#  PKGVERSION="${VERSION}_nowebengine"
+#else
+#  PKGVERSION="${VERSION}"
+#  # Note that this changes to -webengine-proprietary-codecs in later versions
+#  if [ "$PROPRIETARY_CODECS" = "yes" ]; then
+#    CODECS="-proprietary-codecs"
+#  fi
+fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+tar xvf ${TARBALL} ${EXCLUDE}
+mv qt-everywhere-opensource-src-${VERS} ${PKG}
+pushd ${PKG}
+
+# Automatically determine the architecture we're building on:
+if [ -z "${ARCH}" ]; then
+  case "$( uname -m )" in
+    #i?86) export ARCH=i486 ;;
+    arm*) export ARCH=arm ;;
+    # Unless ${ARCH} is already set, use uname -m for all other archs:
+       *) export ARCH=$( uname -m ) ;;
+  esac
+fi
+
+LIBDIRSUFFIX=""
+if [ "${ARCH}" = "i486" ]; then
+  SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+elif [ "${ARCH}" = "i686" ]; then
+  SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+elif [ "${ARCH}" = "s390" ]; then
+  SLKCFLAGS="-O2"
+elif [ "${ARCH}" = "x86_64" ]; then
+  SLKCFLAGS="-O2 -fPIC"
+  LIBDIRSUFFIX="64"
+  SLKLDFLAGS="-L/usr/lib64"
+else
+  SLKCFLAGS="-O2"
+fi
+
+# Default is no.
+if [ "${EXAMPLES}" == "yes" ]; then
+  QTEXAMPLES=""
+else
+  QTEXAMPLES="-nomake examples"
+fi
+
+# Default is yes.
+if [ "${PULSEAUDIO}" == "no" ]; then
+  PULSE=""
+else
+  PULSE="-no-pulseaudio"
+fi
+
+# Default is no.
+if [ "${CCACHE}" == "yes" ]; then
+  CCACHE="-ccache"
+else
+  unset CCACHE
+fi
+
+# Limit -reduce-relocations to ix86 and x86_64.
+# https://bugreports.qt-project.org/browse/QTBUG-36129
+if echo ${ARCH} | grep -q '\(i.86\|x86_64\)' 2>/dev/null; then
+  RELOCATIONS="-reduce-relocations"
+else
+  RELOCATIONS=""
+fi
+
+# Fix missing private includes: QTBUG-37417
+sed -e '/CMAKE_NO_PRIVATE_INCLUDES\ \=\ true/d' -i qtbase/mkspecs/features/create_cmake.prf
+
+# Use our custom compiler and linker flags:
+sed -i -re "s,-O(2|3),${SLKCFLAGS}," qtbase/mkspecs/common/gcc-base.conf
+sed -i -e "/^QMAKE_LFLAGS\s/s,+=,+= ${SLKLDFLAGS},g" qtbase/mkspecs/common/gcc-base.conf
+
+# https://github.com/skarbat/picute/blob/master/qt5-configure-help.txt
+# https://slackbuilds.org/repository/14.2/libraries/qt5/
+# http://www.linuxfromscratch.org/blfs/view/svn/x/qt5.html
+# QT-5.9.8 does not support openssl 1.1.1??
+
+CFLAGS="${SLKCFLAGS}" \
+CXXFLAGS="${SLKCFLAGS} -std=c++11" \
+./configure -v \
+-confirm-license \
+-opensource \
+-prefix "/usr/lib${LIBDIRSUFFIX}/${NAME}" \
+-sysconfdir "/etc/xdg" \
+-headerdir "/usr/include/${NAME}" \
+-libdir "/usr/lib${LIBDIRSUFFIX}" \
+-docdir "/usr/doc/${PKG}" \
+-verbose \
+-system-libpng \
+-system-libjpeg \
+-system-zlib \
+-system-sqlite \
+-plugin-sql-sqlite \
+-dbus-linked \
+-no-openssl \
+-glib \
+-icu \
+-qpa xcb \
+-xcb \
+-no-separate-debug-info \
+-no-pch \
+-no-rpath \
+-strip \
+-release \
+-no-use-gold-linker \
+-c++std c++11 \
+${CCACHE} \
+${PULSE} \
+${RELOCATIONS} \
+${QTEXAMPLES}
+
+if [ -n "${CFGSLEEPREVIEW}" ]; then
+  echo
+  echo "Sleeping ${CFGSLEEPREVIEW} seconds to review ..."
+  sleep ${CFGSLEEPREVIEW}
+fi
+
+# create the TMP directory, compile the code and install to ${TMP}
+make ${MAKEALLCPUS} || bail "ERROR during make"
+# make ${MAKEALLCPUS} || echo "IGNORING non-zero from make"
+mkdir ${TMP}
+make install INSTALL_ROOT=${TMP} || bail "ERROR during make install"
+
+# Install documentation. Default is not to install documentation.
+if [ "${DOCS}" == "yes" ]; then
+  # Recreate Makefiles in order to use the just compiled qdoc.
+  for doc in $(find . -name "Makefile*" | xargs egrep "^\s/usr/lib${LIBDIRSUFFIX}/qt5/bin/" | cut -d':' -f1 | uniq); do
+    rm -fv $doc
+  done
+  make docs || bail "ERROR during make docs"
+  make install_docs INSTALL_ROOT=${TMP} || bail "ERROR during make install_docs"
+fi
+
+####################################################################################################
+ln -s ${NAME} ${TMP}/usr/lib${LIBDIRSUFFIX}/qt-${VERS}
+
+mkdir -p ${TMP}/usr/bin
+for BIN in ${TMP}/usr/lib${LIBDIRSUFFIX}/${NAME}/bin/*; do
+  TMPFILE=$(echo ${BIN} | sed -e "s|$TMP||")
+  case $(basename ${BIN}) in
+    syncqt.pl|fixqt4headers.pl)
+      ln -s ${TMPFILE} ${TMP}/usr/bin/$(basename ${BIN})
+      ;;
+    *)
+      ln -s ${TMPFILE} ${TMP}/usr/bin/$(basename ${BIN})-${NAME}
+      ;;
+  esac
+done
+
+# Create Environment variables
+mkdir -p ${TMP}/etc/profile.d
+sed -e "s|@LIBDIRSUFFIX@|${LIBDIRSUFFIX}|g" ${RLBFDIR}/RLBFILES/profile.d/${NAME}.sh \
+  > ${TMP}/etc/profile.d/${NAME}.sh
+sed -e "s|@LIBDIRSUFFIX@|${LIBDIRSUFFIX}|g" ${RLBFDIR}/RLBFILES/profile.d/${NAME}.csh \
+  > ${TMP}/etc/profile.d/${NAME}.csh
+chmod 0755 ${TMP}/etc/profile.d/*
+
+cat > ${TMP}/usr/lib${LIBDIRSUFFIX}/pkgconfig/Qt5.pc << EOF
+prefix=/usr/lib${LIBDIRSUFFIX}/${NAME}
+bindir=\${prefix}/bin
+datadir=\${prefix}
+docdir=/usr/doc/${PKG}
+archdatadir=\${prefix}
+examplesdir=\${prefix}/examples
+headerdir=/usr/include/${NAME}
+importdir=\${prefix}/imports
+qmldir=\${prefix}/qml
+libdir=/usr/lib${LIBDIRSUFFIX}
+libexec=\${prefix}/libexec
+moc=\${bindir}/moc
+plugindir=\${prefix}/plugins
+qmake=\${bindir}/qmake
+sysconfdir=/etc/xdg
+translationdir=\${prefix}/translations
+
+Name: Qt5
+Description: Qt5 Configuration
+Version: ${VERS}
+EOF
+
+if [ "${WEBENGINE}" == "yes" ]; then
+  # Fix internal linking for Qt5WebEngineCore.pc.
+  sed -i \
+    -e 's|-Wl,--start-group.* -Wl,--end-group||' \
+    -e "s|-L${PWD}/qtwebengine/src/core/api/Release||" \
+    ${TMP}/usr/lib${LIBDIRSUFFIX}/pkgconfig/Qt5WebEngineCore.pc
+fi
+
+# While we are at it, there isn't any reason to keep references to $PKG in the *.prl files.
+for PRL in $(find ${TMP} -name "*\.prl"); do
+  sed -i '/^QMAKE_PRL_BUILD_DIR/d' ${PRL}
+done
+
+# One more for the road.
+sed -i "s|$PWD/qtbase|/usr/lib${LIBDIRSUFFIX}/${NAME}|" \
+  ${TMP}/usr/lib${LIBDIRSUFFIX}/${NAME}/mkspecs/modules/qt_lib_bootstrap_private.pri
+
+### doesnt seem to exist ###
+#sed -i "s|-L${PWD}/\w*/lib ||g" ${TMP}/usr/lib${LIBDIRSUFFIX}/libqgsttools_p.prl
+
+#for i in desktop/*.desktop; do
+#  install -D -m 0644 $i ${TMP}/usr/share/applications/$(basename $i)
+#done
+#sed -i "s|@LIBDIR@|$LIBDIRSUFFIX|" ${TMP}/usr/share/applications/*
+### doesnt seem to exist ###
+
+# Currently not working for qt version 5.4.0.  Extra layer added to *.ico file
+# freaks out ImageMagick and fails image conversion.
+# Eg.
+#   $ convert assistant.ico -resize 96x96! assistant.png
+#     convert: file format version mismatch `assistant.ico' @ error/xwd.c/ReadXWDImage/241.
+#     convert: no images defined `assistant.png' @ error/convert.c/ConvertImageCommand/3127.
+#for i in $(find . -name "assistant.ico" -o -name "designer.ico" \
+#  -o -name "linguist.ico" -o -name "qdbusviewer.ico"); do
+#  for j in 16 24 32 48 64 96 128; do
+#    convert $i -resize ${j}x${j}! $(basename $i)-$j.png
+#    install -D -m 0644 $(basename $i)-$j-0.png \
+#      $PKG/usr/share/icons/hicolor/${j}x${j}/apps/$(basename $i | sed 's|.ico||')-${NAME}.png
+#  done
+#done
+
+install -D -m 0644 qttools/src/assistant/assistant/images/assistant-128.png \
+  ${TMP}/usr/share/icons/hicolor/128x128/apps/assistant-qt5.png
+install -D -m 0644 qttools/src/designer/src/designer/images/designer.png \
+  ${TMP}/usr/share/icons/hicolor/128x128/apps/designer-qt5.png
+install -D -m 0644 qttools/src/qdbus/qdbusviewer/images/qdbusviewer-128.png \
+  ${TMP}/usr/share/icons/hicolor/128x128/apps/qdbusviewer-qt5.png
+for i in 16 32 48 64 128; do
+  install -D -m 0644 qttools/src/linguist/linguist/images/icons/linguist-${i}-32.png \
+    ${TMP}/usr/share/icons/hicolor/${i}x${i}/apps/linguist-qt5.png
+done
+
+# Remove executable bits from files.
+find ${TMP} \( -name "*.qml" -o -name "*.app" \) -perm 755 -exec chmod 644 '{}' \;
+
+mkdir -p ${TMP}/usr/doc/${PKG}
+cp -a README qtbase/{header*,LGPL_EXCEPTION.txt,LICENSE.*} ${TMP}/usr/doc/${PKG}/
+####################################################################################################
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Make sure this module follows "the rules"
+find ${TMP} -type d | xargs chmod -v 755
+MANDIR=`find ${TMP} -type d -name man`
+if [ x"${MANDIR}" != "x" ]; then
+  find ${MANDIR} -type l -name "*.gz" | xargs -r gunzip -f
+  find ${MANDIR} ! -type l -name "*.gz" | xargs -r gunzip
+fi
+find ${TMP} -type f | xargs file | grep ELF | cut -f1 -d: | xargs -r strip --strip-unneeded
+
+# New Rules: No longer keep .la files
+for PKGLIBDIR in ${TMP}/lib* ${TMP}/usr/lib*; do
+  if [ -d ${PKGLIBDIR} ]; then
+    find ${PKGLIBDIR} -type f -name "*.la" | xargs -r rm
+  fi
+done
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
