@@ -70,11 +70,11 @@ fi
 # create the TMP directory, compile the code and install to ${TMP}
 make ${MAKEALLCPUS}
 mkdir ${TMP}
-make install DESTDIR=${TMP}
+make install-strip DESTDIR=${TMP}
 
 # Documentation
 # mkdir -p ${TMP}/usr/doc/${PKG}
-cp  LICENSE NEWS PACKAGING README.md ${TMP}/usr/doc/${PKG}/
+cp LICENSE NEWS PACKAGING README.md ${TMP}/usr/doc/${PKG}/
 
 # back out and copy this script to the module
 popd
