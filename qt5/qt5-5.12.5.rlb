@@ -11,11 +11,11 @@ bail()
 }
 
 NAME="qt5"
-VERS="5.9.8"
+VERS="5.12.5"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
-TARBALL="${PKGDIR}/qt-everywhere-opensource-src-${VERS}.tar.xz"
+TARBALL="${PKGDIR}/qt-everywhere-src-${VERS}.tar.xz"
 RLBFDIR=`dirname $0`
 TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
@@ -54,7 +54,7 @@ fi
 
 if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
 tar xvf ${TARBALL} ${EXCLUDE}
-mv qt-everywhere-opensource-src-${VERS} ${PKG}
+mv qt-everywhere-src-${VERS} ${PKG}
 pushd ${PKG}
 
 # Automatically determine the architecture we're building on:
@@ -121,7 +121,6 @@ sed -i -e "/^QMAKE_LFLAGS\s/s,+=,+= ${SLKLDFLAGS},g" qtbase/mkspecs/common/gcc-b
 # https://github.com/skarbat/picute/blob/master/qt5-configure-help.txt
 # https://slackbuilds.org/repository/14.2/libraries/qt5/
 # http://www.linuxfromscratch.org/blfs/view/svn/x/qt5.html
-# QT-5.9.8 does not support openssl 1.1.1??
 
 CFLAGS="${SLKCFLAGS}" \
 CXXFLAGS="${SLKCFLAGS} -std=c++11" \
@@ -140,7 +139,7 @@ CXXFLAGS="${SLKCFLAGS} -std=c++11" \
 -system-sqlite \
 -plugin-sql-sqlite \
 -dbus-linked \
--no-openssl \
+-openssl-linked \
 -glib \
 -icu \
 -qpa xcb \
@@ -225,13 +224,14 @@ Description: Qt5 Configuration
 Version: ${VERS}
 EOF
 
-if [ "${WEBENGINE}" == "yes" ]; then
-  # Fix internal linking for Qt5WebEngineCore.pc.
-  sed -i \
-    -e 's|-Wl,--start-group.* -Wl,--end-group||' \
-    -e "s|-L${PWD}/qtwebengine/src/core/api/Release||" \
-    ${TMP}/usr/lib${LIBDIRSUFFIX}/pkgconfig/Qt5WebEngineCore.pc
-fi
+### FROM 5.9.8
+#if [ "${WEBENGINE}" == "yes" ]; then
+#  # Fix internal linking for Qt5WebEngineCore.pc.
+#  sed -i \
+#    -e 's|-Wl,--start-group.* -Wl,--end-group||' \
+#    -e "s|-L${PWD}/qtwebengine/src/core/api/Release||" \
+#    ${TMP}/usr/lib${LIBDIRSUFFIX}/pkgconfig/Qt5WebEngineCore.pc
+#fi
 
 # While we are at it, there isn't any reason to keep references to $PKG in the *.prl files.
 for PRL in $(find ${TMP} -name "*\.prl"); do
@@ -281,7 +281,7 @@ done
 find ${TMP} \( -name "*.qml" -o -name "*.app" \) -perm 755 -exec chmod 644 '{}' \;
 
 mkdir -p ${TMP}/usr/doc/${PKG}
-cp -a README qtbase/{header*,LGPL_EXCEPTION.txt,LICENSE.*} ${TMP}/usr/doc/${PKG}/
+cp -a README qtbase/{header*,LICENSE.*} ${TMP}/usr/doc/${PKG}/
 ####################################################################################################
 
 # back out and copy this script to the module
