@@ -28,6 +28,7 @@ PULSEAUDIO=${PULSEAUDIO:-yes}
 CCACHE=${CCACHE:-no}
 WEBENGINE=${WEBENGINE:-no}
 
+# Default is no
 if [ "${WEBENGINE}" == "yes" ]; then
   NEEDGPERF="yes"
   PKGREV="${PKGREV}_webengine"
@@ -82,21 +83,21 @@ else
   SLKCFLAGS="-O2"
 fi
 
-# Default is no.
+# Default is no
 if [ "${EXAMPLES}" == "yes" ]; then
   QTEXAMPLES=""
 else
   QTEXAMPLES="-nomake examples"
 fi
 
-# Default is yes.
+# Default is yes
 if [ "${PULSEAUDIO}" == "no" ]; then
   PULSE=""
 else
   PULSE="-no-pulseaudio"
 fi
 
-# Default is no.
+# Default is no
 if [ "${CCACHE}" == "yes" ]; then
   CCACHE="-ccache"
 else
