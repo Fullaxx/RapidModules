@@ -36,6 +36,7 @@ if [ "${WEBENGINE}" == "yes" ]; then
   fi
 else
   EXCLUDE="--exclude=qtweb*"
+  CODECS=""
   NEEDGPERF="no"
 fi
 
