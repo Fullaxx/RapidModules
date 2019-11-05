@@ -29,7 +29,6 @@ CCACHE=${CCACHE:-no}
 WEBENGINE=${WEBENGINE:-no}
 
 if [ "${WEBENGINE}" == "yes" ]; then
-# Note that this changes to -webengine-proprietary-codecs in later versions
   NEEDGPERF="yes"
   PKGREV="${PKGREV}_webengine"
   if [ "${PROPRIETARYCODECS}" == "yes" ]; then
