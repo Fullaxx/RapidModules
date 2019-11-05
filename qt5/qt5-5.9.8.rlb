@@ -23,21 +23,21 @@ if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
 EXAMPLES=${EXAMPLES:-no}
 DOCS=${DOCS:-no}
-#PROPRIETARY_CODECS=${PROPRIETARY_CODECS:-no}
+PROPRIETARYCODECS=${PROPRIETARYCODECS:-no}
 PULSEAUDIO=${PULSEAUDIO:-yes}
 CCACHE=${CCACHE:-no}
-WEBENGINE=${WEBENGINE:-yes}
-NEEDGPERF="yes"
+WEBENGINE=${WEBENGINE:-no}
 
-if [ "${WEBENGINE}" == "no" ]; then
+if [ "${WEBENGINE}" == "yes" ]; then
+# Note that this changes to -webengine-proprietary-codecs in later versions
+  NEEDGPERF="yes"
+  PKGREV="${PKGREV}_webengine"
+  if [ "${PROPRIETARYCODECS}" == "yes" ]; then
+    CODECS="-proprietary-codecs"
+  fi
+else
   EXCLUDE="--exclude=qtweb*"
-  PKGREV="${PKGREV}_nowebengine"
   NEEDGPERF="no"
-#else
-#  # Note that this changes to -webengine-proprietary-codecs in later versions
-#  if [ "$PROPRIETARY_CODECS" = "yes" ]; then
-#    CODECS="-proprietary-codecs"
-#  fi
 fi
 
 # Activate ninja (to build python things)
@@ -153,6 +153,7 @@ CXXFLAGS="${SLKCFLAGS} -std=c++11" \
 -no-use-gold-linker \
 -c++std c++11 \
 ${CCACHE} \
+${CODECS} \
 ${PULSE} \
 ${RELOCATIONS} \
 ${QTEXAMPLES}
@@ -170,12 +171,7 @@ make install INSTALL_ROOT=${TMP} || bail "ERROR during make install"
 
 # Install documentation. Default is not to install documentation.
 if [ "${DOCS}" == "yes" ]; then
-  # Recreate Makefiles in order to use the just compiled qdoc.
-  for doc in $(find . -name "Makefile*" | xargs egrep "^\s/usr/lib${LIBDIRSUFFIX}/qt5/bin/" | cut -d':' -f1 | uniq); do
-    rm -fv $doc
-  done
-  make docs || bail "ERROR during make docs"
-  make install_docs INSTALL_ROOT=${TMP} || bail "ERROR during make install_docs"
+  echo "TBD"
 fi
 
 ####################################################################################################
@@ -226,7 +222,7 @@ Version: ${VERS}
 EOF
 
 if [ "${WEBENGINE}" == "yes" ]; then
-  # Fix internal linking for Qt5WebEngineCore.pc.
+# Fix internal linking for Qt5WebEngineCore.pc.
   sed -i \
     -e 's|-Wl,--start-group.* -Wl,--end-group||' \
     -e "s|-L${PWD}/qtwebengine/src/core/api/Release||" \
