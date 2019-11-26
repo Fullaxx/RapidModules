@@ -11,7 +11,7 @@ bail()
 }
 
 NAME="qt5"
-VERS="5.13.1"
+VERS="5.12.6"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}

@@ -85,7 +85,7 @@ fi
 
 # Default is no
 if [ "${EXAMPLES}" == "yes" ]; then
-  QTEXAMPLES=""
+  QTEXAMPLES="-examplesdir /usr/doc/${PKG}/examples"
 else
   QTEXAMPLES="-nomake examples"
 fi
@@ -124,8 +124,12 @@ sed -i -e "/^QMAKE_LFLAGS\s/s,+=,+= ${SLKLDFLAGS},g" qtbase/mkspecs/common/gcc-b
 # http://www.linuxfromscratch.org/blfs/view/svn/x/qt5.html
 # QT-5.9.8 does not support openssl 1.1.1??
 
-CFLAGS="${SLKCFLAGS}" \
-CXXFLAGS="${SLKCFLAGS} -std=c++11" \
+export CFLAGS="${SLKCFLAGS}"
+export CXXFLAGS="${SLKCFLAGS} -std=c++11"
+export OPENSOURCE_CXXFLAGS="${SLKCFLAGS}"
+export QTDIR="${PWD}"
+export LD_LIBRARY_PATH="${QTDIR}/qtbase/lib:${QTDIR}/qttools/lib:${LD_LIBRARY_PATH}"
+export QT_PLUGIN_PATH="${QTDIR}/qtbase/plugins"
 ./configure -v \
 -confirm-license \
 -opensource \
@@ -133,6 +137,9 @@ CXXFLAGS="${SLKCFLAGS} -std=c++11" \
 -sysconfdir "/etc/xdg" \
 -headerdir "/usr/include/${NAME}" \
 -libdir "/usr/lib${LIBDIRSUFFIX}" \
+-bindir /usr/lib${LIBDIRSUFFIX}/${NAME}/bin \
+-datadir /usr/share/${NAME} \
+-archdatadir /usr/lib${LIBDIRSUFFIX}/${NAME} \
 -docdir "/usr/doc/${PKG}" \
 -verbose \
 -system-libpng \
@@ -224,24 +231,26 @@ EOF
 
 if [ "${WEBENGINE}" == "yes" ]; then
 # Fix internal linking for Qt5WebEngineCore.pc.
-  sed -i \
-    -e 's|-Wl,--start-group.* -Wl,--end-group||' \
+  sed -e 's|-Wl,--start-group.* -Wl,--end-group||' \
     -e "s|-L${PWD}/qtwebengine/src/core/api/Release||" \
-    ${TMP}/usr/lib${LIBDIRSUFFIX}/pkgconfig/Qt5WebEngineCore.pc
+    -i ${TMP}/usr/lib${LIBDIRSUFFIX}/pkgconfig/Qt5WebEngineCore.pc
 fi
 
 # While we are at it, there isn't any reason to keep references to $PKG in the *.prl files.
 for PRL in $(find ${TMP} -name "*\.prl"); do
-  sed -i '/^QMAKE_PRL_BUILD_DIR/d' ${PRL}
+  sed -e '/^QMAKE_PRL_BUILD_DIR/d' -i ${PRL}
 done
 
 # One more for the road.
-sed -i "s|$PWD/qtbase|/usr/lib${LIBDIRSUFFIX}/${NAME}|" \
-  ${TMP}/usr/lib${LIBDIRSUFFIX}/${NAME}/mkspecs/modules/qt_lib_bootstrap_private.pri
+sed -e "s|${PWD}/qtbase|/usr/lib${LIBDIRSUFFIX}/qt5|" \
+  -i ${TMP}/usr/lib${LIBDIRSUFFIX}/qt5/mkspecs/modules/qt_lib_bootstrap_private.pri
+
+if [ -r ${TMP}/usr/lib${LIBDIRSUFFIX}/libqgsttools_p.prl ]; then
+# 5.9 only?
+  sed -e "s|-L${PWD}/\w*/lib ||g" -i ${TMP}/usr/lib${LIBDIRSUFFIX}/libqgsttools_p.prl
+fi
 
 ### doesnt seem to exist ###
-#sed -i "s|-L${PWD}/\w*/lib ||g" ${TMP}/usr/lib${LIBDIRSUFFIX}/libqgsttools_p.prl
-
 #for i in desktop/*.desktop; do
 #  install -D -m 0644 $i ${TMP}/usr/share/applications/$(basename $i)
 #done
