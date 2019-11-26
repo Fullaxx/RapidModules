@@ -5,7 +5,7 @@
 set -e
 
 NAME="vscode"
-VERS="1.36.1"
+VERS="1.38.1"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
