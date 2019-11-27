@@ -16,8 +16,9 @@ PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
 TARBALL="${PKGDIR}/qt-everywhere-src-${VERS}.tar.xz"
-RLBFDIR=`dirname $0`
 TMP="/tmp/${NAME}-mod-$$"
+RLBFDIR=`dirname $0`
+if [ "${RLBFDIR}" == "." ]; then RLBFDIR=`pwd`; fi
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
@@ -148,6 +149,7 @@ export QT_PLUGIN_PATH="${QTDIR}/qtbase/plugins"
 -plugin-sql-sqlite \
 -dbus-linked \
 -openssl-linked \
+-no-opengl \
 -glib \
 -icu \
 -qpa xcb \
