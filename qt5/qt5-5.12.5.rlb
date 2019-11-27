@@ -167,10 +167,10 @@ ${PULSE} \
 ${RELOCATIONS} \
 ${QTEXAMPLES}
 
-if [ -n "${CFGSLEEPREVIEW}" ]; then
+if [ -n "${PAUSEFORREVIEW}" ]; then
   echo
-  echo "Sleeping ${CFGSLEEPREVIEW} seconds to review ..."
-  sleep ${CFGSLEEPREVIEW}
+  echo "Press any key to continue ..."
+  read PAUSEFORREVIEW
 fi
 
 # create the TMP directory, compile the code and install to ${TMP}
