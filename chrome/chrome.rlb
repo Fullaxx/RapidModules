@@ -11,6 +11,13 @@ BUILDSCRIPT="google-chrome.SlackBuild-150304"
 
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
+if [ -n "$1" ]; then
+  DEBFILE=`basename "$1"`
+  if [[ "$DEBFILE" == google-chrome-*-amd64.deb ]]; then
+    ln -s "$1" google-chrome-stable_current_amd64.deb
+  fi
+fi
+
 if [ ! -e google-chrome-stable_current_amd64.deb ]; then
   echo "google-chrome-stable_current_amd64.deb not found in current dir!"
   echo "download from google.com or use link_latest.sh"
@@ -45,5 +52,9 @@ rm -rf ${TMP}/var
 
 dir2xzm ${TMP} chrome-${GCVERS}-x86_64-1.xzm
 rm -rf ${TMP} /tmp/package-google-chrome
+
+if [ -L google-chrome-stable_current_amd64.deb ]; then
+  rm google-chrome-stable_current_amd64.deb
+fi
 
 # EOF
