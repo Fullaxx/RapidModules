@@ -40,7 +40,8 @@ mkdir -p ${TMP}/etc/profile.d
 cat << EOFF > ${TMP}/etc/profile.d/rl_cuda.sh
 #!/bin/sh
 
-export PATH="\${PATH}:/opt/cuda/bin"
+export CUDA_PATH="/opt/cuda"
+export PATH="\${PATH}:${CUDA_PATH}/bin"
 EOFF
 chmod 0755 ${TMP}/etc/profile.d/rl_cuda.sh
 
