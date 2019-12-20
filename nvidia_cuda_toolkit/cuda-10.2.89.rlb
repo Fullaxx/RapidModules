@@ -5,11 +5,11 @@
 set -e
 
 NAME="cuda"
-VERS="10.1.243"
+VERS="10.2.89"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
-NVINSTSCRIPT="${PKGDIR}/cuda_10.1.243_418.87.00_linux.run"
+NVINSTSCRIPT="${PKGDIR}/cuda_10.2.89_440.33.01_linux.run"
 TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi

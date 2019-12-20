@@ -50,6 +50,13 @@ chmod 0755 ${TMP}/etc/profile.d/rl_cuda.sh
 find ${TMP} -type d -exec chmod -s {} \;
 find ${TMP}/opt/cuda/include -type f -exec chmod 0644 {} \;
 
+# Side-Load GCC 8
+mkdir -p ${TMP}/opt/gcc8
+ROOT="${TMP}/opt/gcc8/" installpkg ${PKGDIR}/gcc-8.3.0-x86_64-2.txz
+ROOT="${TMP}/opt/gcc8/" installpkg ${PKGDIR}/gcc-g++-8.3.0-x86_64-2.txz
+ln -s /opt/gcc8/usr/bin/gcc ${TMP}/opt/cuda/bin/gcc
+ln -s /opt/gcc8/usr/bin/g++ ${TMP}/opt/cuda/bin/g++
+
 # Make sure the system knows where to find cuda libs
 mkdir -p ${TMP}/etc/ld.so.conf.d/
 cat << EOFF > ${TMP}/etc/ld.so.conf.d/cuda-x86_64.conf
