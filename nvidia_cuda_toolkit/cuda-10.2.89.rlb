@@ -3,6 +3,8 @@
 # fullaxx@gmail.com
 
 set -e
+TIMEFILE="/tmp/cudabefore.txt"
+TARFILE="/tmp/nvidiacantfollowafuckingstandard.tar"
 
 NAME="cuda"
 VERS="10.2.89"
@@ -28,15 +30,20 @@ CUDALOC="${TMP}/opt/cuda"
 
 # Install RLB script and the cuda toolkit
 cp $0 ${TMP}/usr/src/rlb/
+touch ${TIMEFILE}
 ${NVINSTSCRIPT} \
 --tmpdir=${CUDATMP} \
 --toolkit \
 --toolkitpath=${CUDALOC} \
 --samples \
---samplespath=${CUDALOC}/samples \
 ${CUDASILENT} \
 ${CUDAOVERRIDE} \
 ${CUDANOOGLLIBS}
+
+# Go find all the shit that nvidia put outside the toolkitpath
+find /etc/ /usr/ \( -type f -o -type l \) -cnewer ${TIMEFILE} | xargs tar cf ${TARFILE}
+tar xf ${TARFILE} -C ${TMP}/
+rm ${TIMEFILE} ${TARFILE}
 
 mkdir -p ${TMP}/etc/profile.d
 cat << EOFF > ${TMP}/etc/profile.d/rl_cuda.sh
