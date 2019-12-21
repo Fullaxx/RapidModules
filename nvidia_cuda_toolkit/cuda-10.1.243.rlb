@@ -18,6 +18,12 @@ if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
 if [ ! -e ${NVINSTSCRIPT} ]; then echo "${NVINSTSCRIPT} doesnt exist, exiting..."; exit 1; fi
 
+if [ -e /usr/lib64/libcublas.so ] || [ -e /usr/lib64/libcublas_static.a ] ; then
+  echo "Previous cuda installation detected!"
+  echo "This script must be run from a pristine env"
+  exit 1
+fi
+
 CUDATMP=${CUDATMP:-/tmp/CUDATMP}
 CUDASILENT="--silent"
 CUDAOVERRIDE="--override"
