@@ -43,6 +43,8 @@ ${CUDANOOGLLIBS}
 # Go find all the shit that nvidia put outside the toolkitpath
 find /etc/ /usr/ \( -type f -o -type l \) -cnewer ${TIMEFILE} | xargs tar cf ${TARFILE}
 tar xf ${TARFILE} -C ${TMP}/
+rm ${TMP}/usr/local/cuda
+ln -s /opt/cuda ${TMP}/usr/local/cuda
 rm ${TIMEFILE} ${TARFILE}
 
 mkdir -p ${TMP}/etc/profile.d
@@ -83,8 +85,10 @@ rm -rf ${SAMPTMP}
 
 # Make CudaLibs
 CLTMP="/tmp/cudalibs-mod-$$"
-mkdir -p ${CLTMP}/opt/cuda/targets
+mkdir -p ${CLTMP}/opt/cuda/targets ${CLTMP}/usr
 cp -av ${TMP}/etc ${CLTMP}/
+cp -av ${TMP}/usr/lib64 ${CLTMP}/usr/ | grep -v pkgconfig
+rm -rf ${CLTMP}/usr/lib64/pkgconfig
 cp -a ${TMP}/opt/cuda/lib64 ${CLTMP}/opt/cuda/
 cp -a ${TMP}/opt/cuda/targets/x86_64-linux/ ${CLTMP}/opt/cuda/targets/
 rm -rf ${CLTMP}/opt/cuda/targets/x86_64-linux/include
