@@ -149,7 +149,6 @@ export QT_PLUGIN_PATH="${QTDIR}/qtbase/plugins"
 -plugin-sql-sqlite \
 -dbus-linked \
 -openssl-linked \
--no-opengl \
 -glib \
 -icu \
 -qpa xcb \
