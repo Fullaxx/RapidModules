@@ -5,7 +5,7 @@
 set -e
 
 NAME="wireshark"
-VERS="3.0.7"
+VERS="3.0.8"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
