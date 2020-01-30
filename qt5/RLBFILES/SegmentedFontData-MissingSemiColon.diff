@@ -1,0 +1,11 @@
+--- SegmentedFontData.cpp	2017-06-16 12:46:36.000000000 +0000
++++ SegmentedFontData.cpp.new	2020-01-30 14:53:06.002283371 +0000
+@@ -61,7 +61,7 @@
+ {
+     UChar32 c;
+     for (int i = 0; i < length; ) {
+-        U16_NEXT(characters, i, length, c)
++        U16_NEXT(characters, i, length, c);
+         if (!containsCharacter(c))
+             return false;
+     }
