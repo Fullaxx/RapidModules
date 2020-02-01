@@ -1,0 +1,126 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="wireshark"
+VERS="2.6.14"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${PKG}.tar.xz"
+TMP="/tmp/${NAME}-mod-$$"
+RLBFDIR=`dirname $0`
+if [ "${RLBFDIR}" == "." ]; then RLBFDIR=`pwd`; fi
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+# Activate doxygen (to build API documentation)
+if [ ! -x /usr/bin/doxygen ]; then
+  echo "I need /usr/bin/doxygen from doxygen-*.txz to build API documentation"
+  exit 1
+fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+tar xvf ${TARBALL}
+pushd ${PKG}
+
+# Automatically determine the architecture we're building on:
+if [ -z "${ARCH}" ]; then
+  case "$( uname -m )" in
+    #i?86) export ARCH=i486 ;;
+    arm*) export ARCH=arm ;;
+    # Unless ${ARCH} is already set, use uname -m for all other archs:
+       *) export ARCH=$( uname -m ) ;;
+  esac
+fi
+
+LIBDIRSUFFIX=""
+if [ "${ARCH}" = "i486" ]; then
+  SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+elif [ "${ARCH}" = "i686" ]; then
+  SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+elif [ "${ARCH}" = "s390" ]; then
+  SLKCFLAGS="-O2"
+elif [ "${ARCH}" = "x86_64" ]; then
+  SLKCFLAGS="-O2"
+  LIBDIRSUFFIX="64"
+else
+  SLKCFLAGS="-O2"
+fi
+
+if [ "${WSGUI}" == "GTK2" ]; then
+  WSGTKTWO="--with-gtk=2"
+elif [ "${WSGUI}" == "GTK3" ]; then
+  WSGTKTHREE="--with-gtk=3"
+elif [ "${WSGUI}" == "QT4" ]; then
+  WSQTFOUR="--with-qt=4"
+elif [ "${WSGUI}" == "QT5" ]; then
+  WSQTFIVE="--with-qt=5"
+else
+  echo "Please Select a GUI: WSGUI=<GTK2|GTK3|QT4|QT5>"
+  exit 1
+fi
+
+./configure \
+--prefix=/usr \
+--sysconfdir=/etc \
+--mandir=/usr/man \
+--docdir=/usr/doc/${PKG} \
+--infodir=/usr/info \
+--libdir=/usr/lib${LIBDIRSUFFIX} \
+--with-pic \
+--enable-tfshark \
+--with-lz4 \
+--with-portaudio \
+--without-lua \
+${WSGTKTWO} ${WSGTKTHREE} ${WSQTFOUR} ${WSQTFIVE}
+
+if [ -n "${PAUSEFORREVIEW}" ]; then
+  echo
+  echo "Press any key to continue ..."
+  read PAUSEFORREVIEW
+fi
+
+# create the TMP directory, compile the code and install to ${TMP}
+make ${MAKEALLCPUS}
+doxygen doxygen.cfg
+mkdir ${TMP}
+make install DESTDIR=${TMP}
+
+# Documentation
+mkdir -p ${TMP}/usr/doc/${PKG}
+cp AUTHORS COPYING ChangeLog NEWS README* ${TMP}/usr/doc/${PKG}/
+cp -r wsar_html ${TMP}/usr/doc/${PKG}/html
+
+mkdir -p ${TMP}/usr/share/pixmaps
+ln -s /usr/share/icons/hicolor/scalable/apps/wireshark.svg ${TMP}/usr/share/pixmaps/wireshark.svg
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Make sure this module follows "the rules"
+find ${TMP} -type d | xargs chmod -v 755
+MANDIR=`find ${TMP} -type d -name man`
+if [ x"${MANDIR}" != "x" ]; then
+  find ${MANDIR} -type l -name "*.gz" | xargs -r gunzip -f
+  find ${MANDIR} ! -type l -name "*.gz" | xargs -r gunzip
+fi
+find ${TMP} -type f | xargs file | grep ELF | cut -f1 -d: | xargs -r strip --strip-unneeded
+
+# New Rules: No longer keep .la files
+for PKGLIBDIR in ${TMP}/lib* ${TMP}/usr/lib*; do
+  if [ -d ${PKGLIBDIR} ]; then
+    find ${PKGLIBDIR} -type f -name "*.la" | xargs -r rm
+  fi
+done
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-${WSGUI}-${ARCH}-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
