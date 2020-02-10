@@ -125,7 +125,7 @@ sed -i -e "/^QMAKE_LFLAGS\s/s,+=,+= ${SLKLDFLAGS},g" qtbase/mkspecs/common/gcc-b
 # http://www.linuxfromscratch.org/blfs/view/svn/x/qt5.html
 
 export CFLAGS="${SLKCFLAGS}"
-export CXXFLAGS="${SLKCFLAGS} -std=c++11"
+export CXXFLAGS="${SLKCFLAGS} -std=c++14"
 export OPENSOURCE_CXXFLAGS="${SLKCFLAGS}"
 export QTDIR="${PWD}"
 export LD_LIBRARY_PATH="${QTDIR}/qtbase/lib:${QTDIR}/qttools/lib:${LD_LIBRARY_PATH}"
@@ -133,6 +133,7 @@ export QT_PLUGIN_PATH="${QTDIR}/qtbase/plugins"
 ./configure -v \
 -confirm-license \
 -opensource \
+-c++std c++14 \
 -prefix "/usr/lib${LIBDIRSUFFIX}/${NAME}" \
 -sysconfdir "/etc/xdg" \
 -headerdir "/usr/include/${NAME}" \
@@ -159,7 +160,6 @@ export QT_PLUGIN_PATH="${QTDIR}/qtbase/plugins"
 -strip \
 -release \
 -no-use-gold-linker \
--c++std c++11 \
 ${CCACHE} \
 ${CODECS} \
 ${PULSE} \
@@ -229,12 +229,12 @@ Description: Qt5 Configuration
 Version: ${VERS}
 EOF
 
-if [ "${WEBENGINE}" == "yes" ]; then
+#if [ "${WEBENGINE}" == "yes" ]; then
 # Fix internal linking for Qt5WebEngineCore.pc.
-  sed -e 's|-Wl,--start-group.* -Wl,--end-group||' \
-    -e "s|-L${PWD}/qtwebengine/src/core/api/Release||" \
-    -i ${TMP}/usr/lib${LIBDIRSUFFIX}/pkgconfig/Qt5WebEngineCore.pc
-fi
+#  sed -e 's|-Wl,--start-group.* -Wl,--end-group||' \
+#    -e "s|-L${PWD}/qtwebengine/src/core/api/Release||" \
+#    -i ${TMP}/usr/lib${LIBDIRSUFFIX}/pkgconfig/Qt5WebEngineCore.pc
+#fi
 
 # While we are at it, there isn't any reason to keep references to $PKG in the *.prl files.
 for PRL in $(find ${TMP} -name "*\.prl"); do
