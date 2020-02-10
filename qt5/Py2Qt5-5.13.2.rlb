@@ -1,0 +1,84 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="PyQt5"
+VERS="5.13.2"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${NAME}-${VERS}.tar.gz"
+# RLBFDIR=`dirname $0`
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+# Activate sip
+if [ ! -x /usr/bin/sip2 ]; then
+  echo "I need /usr/bin/sip2 from sip-*.txz to build ${NAME} for python"
+  exit 1
+fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+tar xvf ${TARBALL}
+pushd ${PKG}
+
+# Automatically determine the architecture we're building on:
+if [ -z "${ARCH}" ]; then
+  case "$( uname -m )" in
+    #i?86) export ARCH=i486 ;;
+    arm*) export ARCH=arm ;;
+    # Unless ${ARCH} is already set, use uname -m for all other archs:
+       *) export ARCH=$( uname -m ) ;;
+  esac
+fi
+
+LIBDIRSUFFIX=""
+if [ "${ARCH}" = "i486" ]; then
+  SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+elif [ "${ARCH}" = "i686" ]; then
+  SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+elif [ "${ARCH}" = "s390" ]; then
+  SLKCFLAGS="-O2"
+elif [ "${ARCH}" = "x86_64" ]; then
+  SLKCFLAGS="-O2 -fPIC"
+  LIBDIRSUFFIX="64"
+else
+  SLKCFLAGS="-O2"
+fi
+
+# This is needed or an include from dbus is missed (tnx, Archlinux)
+sed -i '/target_config.dbus_inc_dirs = \[\]/d' configure.py
+
+export QTDIR=/usr/lib${LIBDIRSUFFIX}/qt5
+export QT5DIR=/usr/lib${LIBDIRSUFFIX}/qt5
+
+export CFLAGS="${SLKCFLAGS}"
+export CXXFLAGS="${SLKCFLAGS}"
+
+PYVERS=$(python -V 2>&1 | cut -f 2 -d' ' | cut -f 1-2 -d.)
+source /etc/profile.d/qt5.sh
+python configure.py \
+--confirm-license \
+--verbose \
+--sip=/usr/bin/sip2 \
+--sip-incdir="/usr/include/python${PYVERS}" \
+-q /usr/lib64/qt5/bin/qmake
+
+make
+mkdir ${TMP}
+make install DESTDIR=${TMP} INSTALL_ROOT=${TMP}
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-${ARCH}-py2-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
