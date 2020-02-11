@@ -67,7 +67,7 @@ python3 configure.py \
 --sip-incdir="/usr/include/python${PYVERS}" \
 -q /usr/lib64/qt5/bin/qmake
 
-make
+make ${MAKEALLCPUS}
 mkdir ${TMP}
 make install DESTDIR=${TMP} INSTALL_ROOT=${TMP}
 
