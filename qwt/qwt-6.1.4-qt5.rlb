@@ -1,0 +1,108 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="qwt"
+VERS="6.1.4"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${PKG}.tar.bz2"
+TMP="/tmp/${NAME}-mod-$$"
+RLBFDIR=`dirname $0`
+if [ "${RLBFDIR}" == "." ]; then RLBFDIR=`pwd`; fi
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+# Activate doxygen (to build API documentation)
+if [ ! -x /usr/bin/doxygen ]; then
+  echo "I need /usr/bin/doxygen from doxygen-*.txz to build API documentation"
+  exit 1
+fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+tar xvf ${TARBALL}
+pushd ${PKG}
+
+# Automatically determine the architecture we're building on:
+if [ -z "${ARCH}" ]; then
+  case "$( uname -m )" in
+    #i?86) export ARCH=i486 ;;
+    arm*) export ARCH=arm ;;
+    # Unless ${ARCH} is already set, use uname -m for all other archs:
+       *) export ARCH=$( uname -m ) ;;
+  esac
+fi
+
+LIBDIRSUFFIX=""
+if [ "${ARCH}" = "i486" ]; then
+  SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+elif [ "${ARCH}" = "i686" ]; then
+  SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+elif [ "${ARCH}" = "s390" ]; then
+  SLKCFLAGS="-O2"
+elif [ "${ARCH}" = "x86_64" ]; then
+  SLKCFLAGS="-O2 -fPIC"
+  LIBDIRSUFFIX="64"
+else
+  SLKCFLAGS="-O2"
+fi
+
+patch -p0 < ${RLBFDIR}/RLBFILES/patch-6.1.2-config.diff
+patch -p0 < ${RLBFDIR}/RLBFILES/patch-6.1.2-pkgconfig.diff
+
+# create the TMP directory
+source /etc/profile.d/qt5.sh
+mkdir ${TMP}
+
+echo "Supporting Qt5"
+mkdir -p build-qt5
+pushd build-qt5
+# qmake-qt5 .. LIBDIRSUFFIX=${LIBDIRSUFFIX}
+qmake .. LIBDIRSUFFIX=${LIBDIRSUFFIX}
+make ${MAKEALLCPUS} CFLAGS+="${SLKCFLAGS}" CXXFLAGS+="${SLKCFLAGS} -std=c++11 -fPIC"
+make install INSTALL_ROOT=${TMP}
+popd
+
+# Documentation
+mv ${TMP}/usr/doc/man ${TMP}/usr/
+mkdir ${TMP}/usr/doc/${PKG}
+mv ${TMP}/usr/doc/html ${TMP}/usr/doc/${PKG}/
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Rationalise the pkgconfig default filenames
+pushd ${TMP}/usr/lib${LIBDIRSUFFIX}/pkgconfig 
+ln -s qwt.pc Qwt6.pc
+if [ -f Qt5Qwt6.pc ]; then
+  ln -s Qt5Qwt6.pc qwt-qt5.pc
+fi
+popd
+
+# Make sure this module follows "the rules"
+find ${TMP} -type d | xargs chmod -v 755
+MANDIR=`find ${TMP} -type d -name man`
+if [ x"${MANDIR}" != "x" ]; then
+  find ${MANDIR} -type l -name "*.gz" | xargs -r gunzip -f
+  find ${MANDIR} ! -type l -name "*.gz" | xargs -r gunzip
+fi
+find ${TMP} -type f | xargs file | grep ELF | cut -f1 -d: | xargs -r strip --strip-unneeded
+
+# New Rules: No longer keep .la files
+for PKGLIBDIR in ${TMP}/lib* ${TMP}/usr/lib*; do
+  if [ -d ${PKGLIBDIR} ]; then
+    find ${PKGLIBDIR} -type f -name "*.la" | xargs -r rm
+  fi
+done
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
