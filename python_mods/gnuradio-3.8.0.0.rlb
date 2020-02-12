@@ -45,16 +45,23 @@ fi
 # Install docs in the right place - Lets handle this downstairs
 # sed -i "s|\${GR_DATA_DIR}/doc|doc|" CMakeLists.txt
 
+PYVERS=$(python3 -V 2>&1 | cut -f 2 -d' ' | cut -f 1-2 -d.)
 mkdir build
 pushd build
 cmake \
 -DCMAKE_C_FLAGS:STRING="${SLKCFLAGS}" \
 -DCMAKE_CXX_FLAGS:STRING="${SLKCFLAGS}" \
 -DCMAKE_CXX_STANDARD=11 \
+-DPYTHON_EXECUTABLE=/usr/bin/python${PYVERS} \
+-DPYTHON_INCLUDE_DIR=/usr/include/python${PYVERS} \
+-DPYTHON_LIBRARY=/usr/lib${LIBDIRSUFFIX}/libpython${PYVERS}.so \
 -DCMAKE_INSTALL_PREFIX=/usr \
 -DSYSCONFDIR=/etc \
 -DLIB_SUFFIX=${LIBDIRSUFFIX} \
 -DCMAKE_MODULES_DIR=lib${LIBDIRSUFFIX}/cmake/${NAME} \
+-DGR_PYTHON_DIR=/usr/lib${LIBDIRSUFFIX}/python${PYVERS}/site-packages \
+-DENABLE_GRC=ON \
+-DENABLE_GR_QTGUI=ON \
 -DENABLE_GR_AUDIO=OFF \
 -DENABLE_GR_UHD=OFF \
 -DENABLE_GR_VOCODER=OFF \
@@ -77,6 +84,7 @@ popd
 # Documentation
 mkdir ${TMP}/usr/doc
 mv ${TMP}/usr/share/doc/${PKG} ${TMP}/usr/doc
+rmdir ${TMP}/usr/share/doc
 cp COPYING README.md README.hacking CHANGELOG.md ${TMP}/usr/doc/${PKG}/
 
 # back out and copy this script to the module
