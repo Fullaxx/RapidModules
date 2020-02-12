@@ -128,9 +128,9 @@
 			<command>terminator</command>
 		</action>
 	</item>
-	<item label="Diarrhouea">
+	<item label="Khansoul">
 		<action name="Execute">
-			<command>diarrhouea</command>
+			<command>khansoul</command>
 		</action>
 	</item>
 	<item label="Hyper">

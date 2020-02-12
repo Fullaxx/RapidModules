@@ -8,8 +8,9 @@ NAME="rapidconfig-rapidworkstation"
 VERS=`date "+%Y%m%d"`
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
-RLBFDIR=`dirname $0`
 TMP="/tmp/${NAME}-mod-$$"
+RLBFDIR=`dirname $0`
+if [ "${RLBFDIR}" == "." ]; then RLBFDIR=`pwd`; fi
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
