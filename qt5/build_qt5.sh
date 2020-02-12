@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# PKGDIR="/opt/RL/packages/qt5" ./build_qt5.sh 5.13.2
+
 set -e
 
 if [ -z "$1" ]; then
@@ -46,6 +48,6 @@ for XZM in *-${FVERS}-x86_64-${PKGREV}.xzm PyQt5-${FVERS}-x86_64-py?-${PKGREV}.x
   xzm2dir ${XZM} ${TMP}
 done
 
-rm -rf *-${FVERS}-x86_64-${PKGREV}.xzm PyQt5-${FVERS}-x86_64-py?-${PKGREV}.xzm
+rm -rf *-${FVERS}-x86_64-${PKGREV}.xzm PyQt5-${FVERS}-x86_64-py?-${PKGREV}.xzm qwt-*.xzm
 dir2xzm ${TMP} qt5-${FVERS}-x86_64-${PKGREV}.xzm
 rm -rf ${TMP}
