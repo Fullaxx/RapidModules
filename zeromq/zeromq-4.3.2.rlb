@@ -10,8 +10,9 @@ PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
 TARBALL="${PKGDIR}/${PKG}.tar.gz"
-RLBFDIR=`dirname $0`
 TMP="/tmp/${NAME}-mod-$$"
+RLBFDIR=`dirname $0`
+if [ "${RLBFDIR}" == "." ]; then RLBFDIR=`pwd`; fi
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
@@ -73,7 +74,10 @@ mkdir -p ${TMP}/usr/src/rlb
 cp $0 ${TMP}/usr/src/rlb
 
 # Dont forget zmq.hpp
-cp ${RLBFDIR}/RLBFILES/zmq.hpp ${TMP}/usr/include/
+wget https://github.com/zeromq/cppzmq/archive/v4.4.1.tar.gz -O /tmp/cmmzmq-4.4.1.tar.gz
+tar xf /tmp/cmmzmq-4.4.1.tar.gz -C /tmp/
+install -m 0644 /tmp/cppzmq-4.4.1/zmq.hpp ${TMP}/usr/include/zmq.hpp
+rm -rf /tmp/cmmzmq-*
 
 # Make sure this module follows "the rules"
 find ${TMP} -type d | xargs chmod -v 755
