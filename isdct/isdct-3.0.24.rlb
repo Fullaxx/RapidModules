@@ -1,0 +1,37 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="isdct"
+VERS="3.0.24"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-`pwd`}
+ZIPFILE="${PKGDIR}/Intel_SSD_DCT_${VERS}_Linux.zip"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${ZIPFILE} ]; then echo "${ZIPFILE} doesnt exist, exiting..."; exit 1; fi
+mkdir ${PKG}
+( cd ${PKG}; unzip ${ZIPFILE}; rpm2txz isdct-*.x86_64.rpm )
+
+# Docs
+mkdir -p ${TMP}/usr/doc/${PKG}
+cp ${PKG}/*.pdf ${TMP}/usr/doc/${PKG}/
+
+# Install
+tar xf ${PKG}/*.txz -C ${TMP}
+
+# copy this script to the module
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
