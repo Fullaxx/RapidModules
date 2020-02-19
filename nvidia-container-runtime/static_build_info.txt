@@ -1,0 +1,12 @@
+CGO_ENABLED=0 GOOS=linux
+
+-gccgoflags '-static'
+-gccgoflags '-static-libgo'
+
+http://blog.wrouesnel.com/articles/Totally%20static%20Go%20builds/
+https://github.com/golang/go/issues/9344
+
+https://stackoverflow.com/questions/20369106/gccgo-static-vs-static-libgo
+https://stackoverflow.com/questions/33476470/how-to-build-static-program-with-gccgo?rq=1
+
+will need libgo.a in order to succeed
