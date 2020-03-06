@@ -1,0 +1,95 @@
+#!/bin/bash
+
+set -e
+
+NAME="vivaldi"
+VERS="2.11.1811.47"
+FVERS="79.0.3945.79"
+WVERS="4.10.1582.2"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+# Automatically determine the architecture we're building on:
+if [ -z "${ARCH}" ]; then
+  ARCH="$( uname -m )"
+fi
+
+case "${ARCH}" in
+  x32) DEBARCH="i386" ;;
+  x86) DEBARCH="i386" ;;
+  i?86) DEBARCH="i386" ;;
+  x64) DEBARCH="amd64" ;;
+  x86_64) DEBARCH="amd64" ;;
+  amd64) DEBARCH="amd64" ;;
+  *) echo "Unknown Version: ${ARCH}"; exit 1 ;;
+esac
+
+case "${DEBARCH}" in
+   i386) WBITS="ia32"; PBITS="x86" ;;
+  amd64) WBITS="x64"; PBITS="x64" ;;
+      *) echo "${DEBARCH} is not supported!" exit 1 ;;
+esac
+
+if [ ${PKGDIR} == "." ]; then
+  PKGDIR="${PWD}"
+fi
+
+VDEB="${PKGDIR}/vivaldi-stable_${VERS}-1_${DEBARCH}.deb"
+FDEB="${PKGDIR}/chromium-codecs-ffmpeg-extra_${FVERS}-*_${DEBARCH}.deb"
+WZIP="${PKGDIR}/${WVERS}-linux-${WBITS}.zip"
+if [ ! -e ${VDEB} ]; then echo "${VDEB} doesnt exist!"; exit 1; fi
+if [ ! -e ${FDEB} ]; then echo "${FDEB} doesnt exist!"; exit 1; fi
+if [ ! -e ${WZIP} ]; then echo "${WZIP} doesnt exist!"; exit 1; fi
+
+# copy this script to the module
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+pushd ${TMP}
+ar p ${VDEB} data.tar.xz | tar Jxv
+rm -r etc
+rm -r opt/vivaldi/cron
+rm -f opt/vivaldi/WidevineCdm
+rmdir usr/share/gnome-control-center/default-apps
+rmdir usr/share/gnome-control-center
+ln -sf /opt/vivaldi/vivaldi ${TMP}/usr/bin/vivaldi
+ln -fs /var/opt/vivaldi/WidevineCdm ${TMP}/opt/vivaldi/WidevineCdm
+popd
+
+mkdir -p ${TMP}/var/opt/vivaldi/media-codecs-${FVERS}
+pushd ${TMP}/var/opt/vivaldi/media-codecs-${FVERS}
+ar p ${FDEB} data.tar.xz | tar Jxf - ./usr/lib/chromium-browser/libffmpeg.so --strip 4
+popd
+
+mkdir -p ${TMP}/var/opt/vivaldi/WidevineCdm/_platform_specific/linux_${PBITS}
+pushd ${TMP}/var/opt/vivaldi/WidevineCdm
+unzip -oq ${WZIP}
+mv libwidevinecdm.so _platform_specific/linux_${PBITS}/
+chmod 0644 _platform_specific/*/*.so
+popd
+
+for res in 16 22 24 32 48 64 128 256; do
+  install -Dm644 "${TMP}/opt/vivaldi/product_logo_${res}.png" \
+    "${TMP}/usr/share/icons/hicolor/${res}x${res}/apps/vivaldi.png"
+done
+
+sed -e "s|vivaldi-stable|vivaldi|" \
+  ${TMP}/usr/share/applications/vivaldi-stable.desktop \
+    > ${TMP}/usr/share/applications/vivaldi.desktop
+rm ${TMP}/usr/share/applications/vivaldi-stable.desktop
+
+# Documentation
+mkdir -p ${TMP}/usr/doc/${PKG}
+gzip -dc ${TMP}/usr/share/doc/vivaldi-stable/changelog.gz > ${TMP}/usr/doc/${PKG}/ChangeLog
+rm -rf ${TMP}/usr/share/doc
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
