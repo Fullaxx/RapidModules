@@ -10,6 +10,7 @@ case "$1" in
 		if [ -r ${VLDPIDFILE} ]; then
 			echo "${VLDPIDFILE} exists!"
 		else
+			mkdir -p /var/run/libvirt
 			/usr/sbin/virtlogd >/var/run/libvirt/virtlogd.log 2>&1 &
 		fi
 		if [ -r ${LVPIDFILE} ]; then
