@@ -29,6 +29,7 @@ chmod 0644 ${TMP}/usr/lib64/*.so.*
 mv ${TMP}/usr/share/licenses/* ${TMP}/usr/doc/
 rmdir ${TMP}/usr/share/licenses ${TMP}/usr/share
 rm -rf ${TMP}/pkgs
+( cd ${TMP}/usr/bin; ln -s nvidia-container-runtime nvidia-container-runtime-hook )
 
 if [ -d ${TMP}/install ]; then
   if [ -f ${TMP}/install/doinst.sh ]; then
