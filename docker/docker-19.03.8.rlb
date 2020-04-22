@@ -6,7 +6,7 @@ set -e
 
 NAME="docker"
 VERS="19.03.8"
-DCVERS="1.25.4"
+DCVERS="1.25.5"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 TMP="/tmp/${NAME}-mod-$$"
@@ -153,6 +153,18 @@ cat << EOFF > ${TMP}/etc/docker/networking.daemon.json
 {
   "bridge": "br0",
   "iptables": false
+}
+EOFF
+
+cat << EOFF > ${TMP}/etc/docker/nvidia.daemon.json
+{
+  "default-runtime":"nvidia",
+  "runtimes": {
+    "nvidia": {
+      "path": "nvidia-container-runtime",
+      "runtimeArgs": []
+    }
+  }
 }
 EOFF
 
