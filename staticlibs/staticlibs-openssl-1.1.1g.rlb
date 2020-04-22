@@ -1,0 +1,57 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="openssl"
+VERS="1.1.1g"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${PKG}.tar.gz"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+tar xvf ${TARBALL}
+pushd ${PKG}
+
+LIBDIRSUFFIX=""
+ARCH=$( uname -m )
+if [ "${ARCH}" = "i486" ]; then
+  OPENSSLBUILDTYPE="linux-x86"
+elif [ "${ARCH}" = "i686" ]; then
+  OPENSSLBUILDTYPE="linux-x86"
+elif [ "${ARCH}" = "x86_64" ]; then
+  OPENSSLBUILDTYPE="linux-x86_64"
+  LIBDIRSUFFIX="64"
+else
+  echo "UNKNOWN BUILD TYPE"
+  exit 1
+fi
+
+./Configure -static ${OPENSSLBUILDTYPE}
+
+# create the TMP directory, compile the code and install to ${TMP}
+make ${MAKEALLCPUS}
+mkdir ${TMP}
+make install DESTDIR=${TMP}
+
+mkdir -p ${TMP}/newusr/lib${LIBDIRSUFFIX}
+mv ${TMP}/usr/local/lib${LIBDIRSUFFIX}/*.a ${TMP}/newusr/lib${LIBDIRSUFFIX}
+rm -rf ${TMP}/usr
+mv ${TMP}/newusr ${TMP}/usr
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+# Package up the modules and clean up
+dir2xzm ${TMP} staticlibs-${PKG}-${ARCH}-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
