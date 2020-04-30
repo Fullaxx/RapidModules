@@ -4,12 +4,12 @@
 
 set -e
 
-NAME="nvidia-container-runtime"
+NAME="nvidia-container-toolkit"
 VERS="3.1.4"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-`pwd`}
-TARBALL="${PKGDIR}/${NAME}-${VERS}.tar.gz"
+TARBALL="${PKGDIR}/nvidia-container-runtime-${VERS}.tar.gz"
 TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
@@ -22,17 +22,16 @@ fi
 
 if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
 tar xf ${TARBALL}
+mv nvidia-container-runtime-${VERS} ${PKG}
 
 mkdir -p ${TMP}/gopath/src ${TMP}/usr/bin
 (
   set -e
   cd ${PKG}
-  ln -rTsf runtime/src ${TMP}/gopath/src/${NAME}
+  ln -rTsf toolkit/nvidia-container-toolkit ${TMP}/gopath/src/${NAME}
   GOPATH="${TMP}/gopath" go install -a -buildmode=pie ${NAME}
   install -m755 ${TMP}/gopath/bin/${NAME} ${TMP}/usr/bin/${NAME}
-  mkdir -p ${TMP}/etc/nvidia-container-runtime/
-  install -m644 toolkit/config.toml.* ${TMP}/etc/nvidia-container-runtime/
-  touch ${TMP}/etc/nvidia-container-runtime/config.toml
+  ln -s ${NAME} ${TMP}/usr/bin/nvidia-container-runtime-hook
 )
 rm -rf ${TMP}/gopath
 
