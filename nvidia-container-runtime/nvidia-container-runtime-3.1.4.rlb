@@ -43,11 +43,8 @@ mkdir -p ${TMP}/gopath/src ${TMP}/usr/bin
 )
 rm -rf ${TMP}/gopath
 
-# The binaries require libgo.so
-mkdir -p ${TMP}/usr/li64 ${TMP}/usr/doc/${PKG}
-cp -a /usr/lib64/libgo.* ${TMP}/usr/li64/
-
 # Docs
+mkdir -p ${TMP}/usr/doc/${PKG}
 install -m644 ${PKG}/LICENSE ${TMP}/usr/doc/${PKG}/LICENSE
 
 # copy this script to the module
