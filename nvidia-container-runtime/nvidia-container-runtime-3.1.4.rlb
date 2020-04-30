@@ -40,6 +40,7 @@ mkdir -p ${TMP}/gopath/src ${TMP}/usr/bin
   ln -s nvidia-container-toolkit ${TMP}/usr/bin/nvidia-container-runtime-hook
   mkdir -p ${TMP}/etc/nvidia-container-runtime/
   install -m644 toolkit/config.toml.* ${TMP}/etc/nvidia-container-runtime/
+  touch ${TMP}/etc/nvidia-container-runtime/config.toml
 )
 rm -rf ${TMP}/gopath
 
