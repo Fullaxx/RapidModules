@@ -1,0 +1,41 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="inxi"
+VERS="3.0.38-1"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${PKG}.tar.gz"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+tar xvf ${TARBALL}
+pushd ${PKG}
+
+mkdir -p ${TMP}/usr/bin
+install -m0755 inxi ${TMP}/usr/bin/
+
+mkdir -p ${TMP}/usr/man/man1
+install -m0644 inxi.1 ${TMP}/usr/man/man1/
+
+# Documentation
+mkdir -p ${TMP}/usr/doc/${PKG}
+cp inxi.changelog *.txt ${TMP}/usr/doc/${PKG}/
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-noarch-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
