@@ -77,7 +77,20 @@ ${NON_ETHERNET_DECODERS}
 # create the TMP directory, compile the code and install to ${TMP}
 make ${MAKEALLCPUS}
 mkdir ${TMP}
-make install DESTDIR=${TMP}
+make install-strip DESTDIR=${TMP}
+
+# Create default, empty directory for rules
+mkdir -p ${TMP}/etc/snort/rules
+mkdir -p ${TMP}/etc/snort/preproc_rules
+
+# Create directory for logging
+mkdir -p ${TMP}/var/log/snort
+
+# Create directories for schemas and signatures
+mkdir -p ${TMP}/usr/doc/${PKG}/{schemas,signatures}
+
+# Create directory for dynamic rules
+mkdir -p ${TMP}/usr/lib${LIBDIRSUFFIX}/snort_dynamicrules
 
 # Documentation
 # mkdir -p ${TMP}/usr/doc/${PKG}
@@ -89,7 +102,7 @@ rmdir ${TMP}/usr/share/doc
 rmdir ${TMP}/usr/share
 find ${TMP}/usr/doc/${PKG} -type f -exec chmod 0644 {} \;
 
-# extra source code?
+# extra source code? (/usr/src/snort_dynamicsrc) - move it to /usr/share/snort
 find ${TMP}/usr/src/snort_dynamicsrc -type f -exec chmod 0644 {} \;
 ( cd ${TMP}/usr/src/; tar cf snort_dynamicsrc.tar snort_dynamicsrc; rm -rf snort_dynamicsrc )
 mkdir -p ${TMP}/usr/share/snort/
@@ -98,6 +111,21 @@ mv ${TMP}/usr/src/snort_dynamicsrc.tar ${TMP}/usr/share/snort
 # init script
 mkdir -p ${TMP}/etc/rc.d
 install -m0755 ${RLBFDIR}/RLBFILES/rc.snort ${TMP}/etc/rc.d/rc.snort
+
+# Set up a sane config directory - snort won't do this on its own
+mkdir -p ${TMP}/etc/snort
+# Fix paths for libraries in snort.conf, also 64-bits and rules paths...
+# also set "unified2" as standard output, without special options
+sed -e "s|usr/local/lib|usr/lib${LIBDIRSUFFIX}|g" \
+    -e "s|PATH ../|PATH |g" \
+    -e "/^# output unified2*/aoutput unified2: filename snort.log, limit 128" \
+    etc/snort.conf > ${TMP}/etc/snort/snort.conf
+cat etc/threshold.conf > ${TMP}/etc/snort/threshold.conf
+cat etc/reference.config > ${TMP}/etc/snort/reference.config
+cat etc/classification.config > ${TMP}/etc/snort/classification.config
+cat etc/attribute_table.dtd > ${TMP}/etc/snort/attribute_table.dtd
+cat etc/gen-msg.map > ${TMP}/etc/snort/gen-msg.map
+cat etc/unicode.map > ${TMP}/etc/snort/unicode.map
 
 # back out and copy this script to the module
 popd
