@@ -41,6 +41,10 @@ else
   SLKCFLAGS="-O2"
 fi
 
+# Add missing sctp.h header
+# DO WE NEED THIS LINE? sed -e 's/ip6.h os.h rand.h route.h tcp.h tun.h udp.h/ip6.h os.h rand.h route.h tcp.h tun.h udp.h sctp.h/' -i include/dnet/Makefile.am
+sed -e 's/ip6.h os.h rand.h route.h tcp.h tun.h udp.h/ip6.h os.h rand.h route.h tcp.h tun.h udp.h sctp.h/' -i include/dnet/Makefile.in
+
 CFLAGS="${SLKCFLAGS}" \
 CXXFLAGS="${SLKCFLAGS}" \
 ./configure \
