@@ -1,0 +1,128 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="vlc"
+VERS="3.0.10"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${PKG}.tar.xz"
+RLBFDIR=`dirname $0`
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+tar xvf ${TARBALL}
+pushd ${PKG}
+
+# Automatically determine the architecture we're building on:
+if [ -z "${ARCH}" ]; then
+  case "$( uname -m )" in
+    #i?86) export ARCH=i486 ;;
+    arm*) export ARCH=arm ;;
+    # Unless ${ARCH} is already set, use uname -m for all other archs:
+       *) export ARCH=$( uname -m ) ;;
+  esac
+fi
+
+LIBDIRSUFFIX=""
+if [ "${ARCH}" = "i486" ]; then
+  SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+elif [ "${ARCH}" = "i686" ]; then
+  SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+elif [ "${ARCH}" = "s390" ]; then
+  SLKCFLAGS="-O2"
+elif [ "${ARCH}" = "x86_64" ]; then
+  SLKCFLAGS="-O2"
+  LIBDIRSUFFIX="64"
+else
+  SLKCFLAGS="-O2"
+fi
+
+if [ "${ENABLEQT}" == "yes" ]; then
+# it would appear that vlc desires QT5
+# and wont pick up QT4
+  VLCQT="--enable-qt"
+else
+  VLCQT="--disable-qt"
+fi
+
+CFLAGS="${SLKCFLAGS}" \
+CXXFLAGS="${SLKCFLAGS}" \
+./configure \
+--prefix=/usr \
+--sysconfdir=/etc \
+--mandir=/usr/man \
+--infodir=/usr/info \
+--docdir=/usr/doc/${PKG} \
+--libdir=/usr/lib${LIBDIRSUFFIX} \
+--localstatedir=/var \
+--with-pic \
+--disable-nls \
+--disable-lua \
+--enable-run-as-root \
+--disable-skins2 \
+--enable-xcb \
+--enable-libass \
+--enable-libmpeg2 \
+--enable-dvbpsi \
+--enable-realrtsp \
+--enable-ogg \
+--enable-theora \
+--enable-vorbis \
+--enable-flac \
+--enable-opus \
+--enable-libva \
+--enable-vdpau \
+${VLCQT}
+
+# We used to link against x264, does ffmpeg give this now?
+# --enable-x264 \ TEMP
+# --enable-x265 \ TEMP
+
+if [ -n "${PAUSEFORREVIEW}" ]; then
+  echo
+  echo "Press any key to continue ..."
+  read PAUSEFORREVIEW
+fi
+
+# create the TMP directory, compile the code and install to ${TMP}
+make ${MAKEALLCPUS}
+mkdir ${TMP}
+make install DESTDIR=${TMP}
+
+# Documentation
+mkdir -p ${TMP}/usr/doc/${PKG}
+cp ABOUT-NLS AUTHORS COPYING.* ChangeLog NEWS README THANKS ${TMP}/usr/doc/${PKG}/
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Make sure this module follows "the rules"
+find ${TMP} -type d | xargs chmod -v 755
+MANDIR=`find ${TMP} -type d -name man`
+if [ x"${MANDIR}" != "x" ]; then
+  find ${MANDIR} -type l -name "*.gz" | xargs -r gunzip -f
+  find ${MANDIR} ! -type l -name "*.gz" | xargs -r gunzip
+fi
+find ${TMP} -type f | xargs file | grep ELF | cut -f1 -d: | xargs -r strip --strip-unneeded
+
+# New Rules: No longer keep .la files
+for PKGLIBDIR in ${TMP}/lib* ${TMP}/usr/lib*; do
+  if [ -d ${PKGLIBDIR} ]; then
+    find ${PKGLIBDIR} -type f -name "*.la" | xargs -r rm
+  fi
+done
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
