@@ -7,13 +7,13 @@ set -e
 NAME="chrome"
 TMP="/tmp/chrome-buildmod-$$"
 SCRIPTDIR=`dirname $0`
-BUILDSCRIPT="google-chrome.SlackBuild-150304"
+BUILDSCRIPT="google-chrome.SlackBuild-190911"
 
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
 if [ -n "$1" ]; then
   DEBFILE=`basename "$1"`
-  if [[ "$DEBFILE" == google-chrome-*-amd64.deb ]]; then
+  if [[ "${DEBFILE}" == google-chrome-*-amd64.deb ]]; then
     ln -s "$1" google-chrome-stable_current_amd64.deb
   fi
 fi
