@@ -56,7 +56,8 @@ CXXFLAGS="${SLKCFLAGS}" \
 --prefix=/usr \
 --sysconfdir=/etc \
 --mandir=/usr/man \
---localstatedir=/var
+--localstatedir=/var \
+--enable-shared
 
 # --with-vox=cmu_us_kal16 (already enabled by default?)
 
@@ -68,8 +69,9 @@ mkdir ${TMP}
 # make install DESTDIR=${TMP}
 make install prefix=${TMP}/usr
 
-# remove static libs
-rm -rf ${TMP}/usr/lib
+if [ "${LIBDIRSUFFIX}" == "64" ]; then
+  mv ${TMP}/usr/lib ${TMP}/usr/lib64
+fi
 
 # Documentation (make doc needs texi2html/texi2pdf)
 mkdir -p ${TMP}/usr/doc/${PKG}
