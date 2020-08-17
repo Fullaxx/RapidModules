@@ -57,20 +57,21 @@ fi
 --with-pic \
 --enable-aer \
 --enable-mce \
---enable-diskerror
+--enable-diskerror \
+--enable-memory-ce-pfa
 
 #--enable-allenable all features
-#--enable-sqlite3enable storing data at SQL lite database (currently
+#--enable-sqlite3 enable storing data at SQL lite database (currently experimental)
 #--enable-aerenable PCIe AER events (currently experimental)
 #--enable-non-standard enable NON_STANDARD events (currently experimental)
 #--enable-armenable ARM events (currently experimental)
 #--enable-mceenable MCE events (currently experimental)
 #--enable-extlog enable EXTLOG events (currently experimental)
-#--enable-devlinkenable devlink health events (currently
-#--enable-diskerrorenable disk I/O error events (currently
-#--enable-abrt-reportenable report event to ABRT (currently experimental)
-#--enable-hisi-ns-decode enable HISI_NS_DECODE events (currently
-#--enable-memory-ce-pfaenable memory Corrected Error predictive failure
+#--enable-devlink enable devlink health events (currently experimental)
+#--enable-diskerror enable disk I/O error events (currently experimental)
+#--enable-abrt-report enable report event to ABRT (currently experimental)
+#--enable-hisi-ns-decode enable HISI_NS_DECODE events (currently experimental)
+#--enable-memory-ce-pfa enable memory Corrected Error predictive failure
 
 
 if [ -n "${PAUSEFORREVIEW}" ]; then
@@ -92,6 +93,21 @@ cp AUTHORS COPYING ChangeLog NEWS README TODO ${TMP}/usr/doc/${PKG}/
 popd
 mkdir -p ${TMP}/usr/src/rlb
 cp $0 ${TMP}/usr/src/rlb
+
+# Install startup script
+mkdir -p ${TMP}/etc/rc.d
+cat << EOFF > ${TMP}/etc/rc.d/rc.rasdaemon
+#!/bin/bash
+
+case "\$1" in
+  'start') /usr/sbin/rasdaemon -f -r ;;
+  'stop') /usr/sbin/rasdaemon --disable ;;
+  'restart') \$0 stop; sleep 1; \$0 start ;;
+  *) echo "usage \$0 <start|stop|restart>"
+esac
+
+EOFF
+chmod 0755 ${TMP}/etc/rc.d/rc.rasdaemon
 
 # Make sure this module follows "the rules"
 find ${TMP} -type d | xargs chmod -v 755

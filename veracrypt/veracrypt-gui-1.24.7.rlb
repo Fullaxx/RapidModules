@@ -1,0 +1,44 @@
+#!/bin/bash
+
+set -e
+
+NAME="veracrypt-gui"
+VERS="1.24-Update7"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+# Automatically determine the architecture we're building on:
+if [ -z "${ARCH}" ]; then
+  ARCH="$( uname -m )"
+fi
+
+case "${ARCH}" in
+  x32) PKGARCH="i386" ;;
+  x86) PKGARCH="i386" ;;
+  i?86) PKGARCH="i386" ;;
+  x64) PKGARCH="amd64" ;;
+  x86_64) PKGARCH="amd64" ;;
+  amd64) PKGARCH="amd64" ;;
+  *) echo "Unknown Version: ${ARCH}"; exit 1 ;;
+esac
+
+PKG="veracrypt_${VERS}_${PKGARCH}.tar.gz"
+if [ ! -f "${PKGDIR}/${PKG}" ]; then
+  echo "${PKGDIR}/${PKG} not found!"
+  exit 1
+fi
+
+mkdir -p ${TMP}/usr/doc
+tar xvf ${PKGDIR}/${PKG} -C ${TMP}
+mv ${TMP}/usr/share/doc/veracrypt ${TMP}/usr/doc/${NAME}-${VERS}
+rmdir ${TMP}/usr/share/doc
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${NAME}-1.24.7-${ARCH}-${PKGREV}.xzm
+rm -rf ${NAME}
+rm -rf ${TMP}
+
+# EOF
