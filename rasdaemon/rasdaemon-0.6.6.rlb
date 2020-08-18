@@ -100,7 +100,7 @@ cat << EOFF > ${TMP}/etc/rc.d/rc.rasdaemon
 #!/bin/bash
 
 case "\$1" in
-  'start') /usr/sbin/rasdaemon -f -r ;;
+  'start') /usr/sbin/rasdaemon ;;
   'stop') /usr/sbin/rasdaemon --disable ;;
   'restart') \$0 stop; sleep 1; \$0 start ;;
   *) echo "usage \$0 <start|stop|restart>"
