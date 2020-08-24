@@ -6,6 +6,7 @@ set -e
 
 NAME="zeromq"
 VERS="4.3.2"
+CPPZMQVERS="4.6.0"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
@@ -74,10 +75,22 @@ mkdir -p ${TMP}/usr/src/rlb
 cp $0 ${TMP}/usr/src/rlb
 
 # Dont forget zmq.hpp
-wget https://github.com/zeromq/cppzmq/archive/v4.4.1.tar.gz -O /tmp/cmmzmq-4.4.1.tar.gz
-tar xf /tmp/cmmzmq-4.4.1.tar.gz -C /tmp/
-install -m 0644 /tmp/cppzmq-4.4.1/zmq.hpp ${TMP}/usr/include/zmq.hpp
-rm -rf /tmp/cmmzmq-*
+wget https://github.com/zeromq/cppzmq/archive/v${CPPZMQVERS}.tar.gz -O /tmp/cppzmq-${CPPZMQVERS}.tar.gz
+tar xf /tmp/cppzmq-${CPPZMQVERS}.tar.gz -C /tmp/
+install -m 0644 /tmp/cppzmq-${CPPZMQVERS}/zmq.hpp ${TMP}/usr/include/zmq.hpp
+rm -rf /tmp/cppzmq-*
+
+# Build and Install PyZMQ
+(
+  set -e
+  wget https://files.pythonhosted.org/packages/05/77/7483975d84fe1fd24cc67881ba7810e0e7b3ee6c2a0e002a5d6703cca49b/pyzmq-19.0.2.tar.gz -O /tmp/pyzmq.tar.gz
+  cd /tmp
+  tar xf /tmp/pyzmq.tar.gz
+  cd pyzmq-*
+  python3 setup.py install --root=${TMP}
+  cd /tmp
+  rm -rf pyzmq.tar.gz pyzmq-*
+)
 
 # Make sure this module follows "the rules"
 find ${TMP} -type d | xargs chmod -v 755
