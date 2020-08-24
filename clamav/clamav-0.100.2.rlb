@@ -184,9 +184,13 @@ if [ "${milter}" = "en" ]; then
   chmod 4700 ${TMP}/usr/sbin/clamav-milter
 fi
 chmod 0770 ${TMP}/var/lib/clamav
-install -D -m 0660 ${PKGDIR}/defs/main.cvd ${TMP}/var/lib/clamav/main.cvd
-install -D -m 0660 ${PKGDIR}/defs/daily.cvd ${TMP}/var/lib/clamav/daily.cvd
-install -D -m 0660 ${PKGDIR}/defs/bytecode.cvd ${TMP}/var/lib/clamav/bytecode.cvd
+(
+  cd ${TMP}/var/lib/clamav
+  wget http://database.clamav.net/main.cvd
+  wget http://database.clamav.net/daily.cvd
+  wget http://database.clamav.net/bytecode.cvd
+  chmod 0660 *.cvd
+)
 
 # Create log files in such a way that they won't clobber existing ones
 touch ${TMP}/var/log/clamav/clamd.log
