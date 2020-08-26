@@ -44,8 +44,8 @@ rm -r ${SPDIR}/usr/{doc,include,sbin}
 for MP in ${SPDIR}/usr/man/man?/*.gz; do gunzip ${MP}; done
 
 rm ${SPDIR}/usr/bin/named-rrchecker
-rm ${SPDIR}/usr/bin/*-config*
-rm ${SPDIR}/usr/man/man?/*-config.sh.?
+# rm ${SPDIR}/usr/bin/*-config*
+# rm ${SPDIR}/usr/man/man?/*-config.sh.?
 rm ${SPDIR}/usr/man/man?/named-rrchecker.?
 
 dir2xzm ${SPDIR} ${PKG}
