@@ -124,12 +124,12 @@
 		</action>
 	</item>
 
-<!-- 
 	<item label="Terminator">
 		<action name="Execute">
 			<command>terminator</command>
 		</action>
 	</item>
+<!--
 	<item label="Khansoul">
 		<action name="Execute">
 			<command>khansoul</command>
@@ -237,7 +237,7 @@
 <menu id="root-menu" label="Openbox 3">
 	<separator label="Quick Access" />
 	<item label="xterm"><action name="Execute"><command>xterm</command></action></item>
-	<!-- <item label="Terminator"><action name="Execute"><command>terminator</command></action></item> -->
+	<item label="Terminator"><action name="Execute"><command>terminator</command></action></item>
 	<separator label="Applications" />
 	<menu id="apps-browsers-menu"/>
 	<menu id="apps-fileman-menu"/>
