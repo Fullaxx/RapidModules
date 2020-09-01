@@ -36,9 +36,9 @@ rl_xm qtlocation-${FVERS}-x86_64-${PKGREV}.xzm /
 rl_xm qtwebchannel-${FVERS}-x86_64-${PKGREV}.xzm /
 
 ./qtwebengine-${FVERS}.rlb
-rl_xm qtwebchannel-${FVERS}-x86_64-${PKGREV}.xzm /
+rl_xm qtwebengine-${FVERS}-x86_64-${PKGREV}.xzm /
 
-./Py2Qt5-${FVERS}.rlb
+# ./Py2Qt5-${FVERS}.rlb
 ./Py3Qt5-${FVERS}.rlb
 ./qwt-6.1.4-qt5.rlb
 
