@@ -100,8 +100,8 @@ cat << EOFF > ${TMP}/etc/rc.d/rc.rasdaemon
 #!/bin/bash
 
 case "\$1" in
-  'start') /usr/sbin/rasdaemon ;;
-  'stop') /usr/sbin/rasdaemon --disable ;;
+  'start') /usr/bin/rl_activate_kernel_debug.sh; /usr/sbin/rasdaemon ;;
+  'stop') /usr/sbin/rasdaemon --disable; umount /sys/kernel/debug ;;
   'restart') \$0 stop; sleep 1; \$0 start ;;
   *) echo "usage \$0 <start|stop|restart>"
 esac
