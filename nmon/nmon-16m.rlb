@@ -4,7 +4,7 @@
 
 set -e
 
-NAME="lmon"
+NAME="nmon"
 VERS="16m"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
