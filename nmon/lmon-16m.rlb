@@ -1,0 +1,32 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="lmon"
+VERS="16m"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+RLBFDIR=`dirname $0`
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+mkdir -p ${TMP}/usr/bin ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+pushd ${TMP}/usr/bin
+wget 'https://downloads.sourceforge.net/project/nmon/lmon16m.c' -O lmon.c
+gcc -Wall -O3 -lncurses -lm -D X86 -D UBUNTU lmon.c -o nmon
+strip nmon
+rm lmon.c
+popd
+
+# Package up the modules and clean up
+ARCH=$( uname -m )
+dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
