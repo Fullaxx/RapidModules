@@ -8,9 +8,29 @@
 			<command>firefox</command>
 		</action>
 	</item>
+	<item label="Firefox (Clean)">
+		<action name="Execute">
+			<command>rl_launch_ff_clean.sh</command>
+		</action>
+	</item>
 	<item label="Chrome">
 		<action name="Execute">
 			<command>rl_launch_chrome_home.sh</command>
+		</action>
+	</item>
+	<item label="Chrome (Clean)">
+		<action name="Execute">
+			<command>rl_launch_chrome_clean.sh</command>
+		</action>
+	</item>
+	<item label="Vivaldi">
+		<action name="Execute">
+			<command>rl_launch_viv_home.sh</command>
+		</action>
+	</item>
+	<item label="Vivaldi (Clean)">
+		<action name="Execute">
+			<command>rl_launch_viv_clean.sh</command>
 		</action>
 	</item>
 </menu>
@@ -204,14 +224,17 @@
 			<startupnotify><enabled>yes</enabled></startupnotify>
 		</action>
 	</item>
+<!--
 	<item label="Inkscape">
 		<action name="Execute">
 			<command>inkscape</command>
 			<startupnotify><enabled>yes</enabled></startupnotify>
 		</action>
 	</item>
+-->
 </menu>
 
+<!--
 <menu id="apps-RE-menu" label="Reverse Engineering">
 	<item label="Cutter">
 		<action name="Execute">
@@ -220,6 +243,7 @@
 		</action>
 	</item>
 </menu>
+-->
 
 <menu id="system-menu" label="System">
 	<item label="Openbox Configuration Manager">
@@ -246,7 +270,7 @@
 	<menu id="apps-terminals-menu"/>
 	<menu id="apps-utils-menu"/>
 	<menu id="apps-graphics-menu"/>
-	<menu id="apps-RE-menu"/>
+	<!-- <menu id="apps-RE-menu"/> -->
 	<separator label="System" />
 	<menu id="system-menu"/>
 	<separator />
