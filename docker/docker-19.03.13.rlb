@@ -1,0 +1,176 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="docker"
+VERS="19.03.13"
+DCVERS="1.26.2"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+# Download docker
+DTARBALL="/tmp/newdocker-$$.tgz"
+curl -L https://download.docker.com/linux/static/stable/x86_64/docker-${VERS}.tgz \
+-o ${DTARBALL}
+
+mkdir -p ${TMP}/usr ${TMP}/etc/rc.d
+tar xvf ${DTARBALL} -C ${TMP}/usr
+rm ${DTARBALL}
+mv ${TMP}/usr/docker ${TMP}/usr/bin
+
+# Download docker-compose
+curl -L https://github.com/docker/compose/releases/download/${DCVERS}/docker-compose-Linux-x86_64 \
+-o ${TMP}/usr/bin/docker-compose
+
+MAJMINVERS=`echo "${VERS}" | cut -d. -f1-2`
+mkdir -p ${TMP}/etc/bash_completion.d
+curl -L https://raw.githubusercontent.com/docker/docker-ce/${MAJMINVERS}/components/cli/contrib/completion/bash/docker \
+-o ${TMP}/etc/bash_completion.d/docker
+
+# Download bash-completion
+curl -L https://raw.githubusercontent.com/docker/compose/${DCVERS}/contrib/completion/bash/docker-compose \
+-o ${TMP}/etc/bash_completion.d/docker-compose
+
+chown -R root.root ${TMP}/usr/bin
+chmod -R 0755 ${TMP}/usr/bin
+chmod 0755 ${TMP}/etc/bash_completion.d
+chmod 0644 ${TMP}/etc/bash_completion.d/*
+
+# Save RLB script
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+cat << EOFF > ${TMP}/etc/rc.d/rc.rl_docker
+#!/bin/bash
+
+docker_setup()
+{
+# /var/lib/docker should probably be backed by a HD
+# but until the user specifies one, this will get us running
+  if [ ! -d /var/lib/docker ]; then
+    mkdir /var/lib/docker
+  fi
+  if ! mount | grep -q '/var/lib/docker' ; then
+    /sbin/mount tmpfs /var/lib/docker -t tmpfs
+  fi
+}
+
+docker_start()
+{
+  echo "Starting Docker: /usr/bin/dockerd &"
+  /usr/bin/dockerd -s aufs >>/var/log/docker.log 2>&1 &
+}
+
+docker_stop()
+{
+  echo -n "Stopping dockerd "
+  /usr/bin/killall dockerd 2>/dev/null
+  while [ "\$?" == "0" ] ; do
+    echo -n "."
+    sleep 1
+    /usr/bin/killall dockerd 2>/dev/null
+  done
+  echo " complete"
+}
+
+docker_restart()
+{
+  docker_stop
+  sleep 1
+  docker_start
+}
+
+case "\$1" in
+  'setup') docker_setup ;;
+  'start') docker_start ;;
+  'stop') docker_stop ;;
+  'restart') docker_restart ;;
+  'status') docker ps ;;
+  *) echo "usage \$0 <setup|start|stop|restart|status>"
+esac
+
+EOFF
+chmod 0755 ${TMP}/etc/rc.d/rc.rl_docker
+
+# https://docs.docker.com/registry/insecure/
+# If we dont have certain root certs, allow pull over HTTP
+# If you need this, rename this file to daemon.json
+mkdir -p "${TMP}/etc/docker"
+cat << EOFF > ${TMP}/etc/docker/ir.daemon.json
+{
+  "insecure-registries": ["registry-1.docker.io"]
+}
+EOFF
+
+# https://docs.docker.com/config/daemon/#configure-the-docker-daemon
+# https://success.docker.com/article/how-do-i-enable-debug-logging-of-the-docker-daemon
+cat << EOFF > ${TMP}/etc/docker/debug.daemon.json
+{
+  "debug": true
+}
+EOFF
+
+# https://docs.docker.com/storage/storagedriver/aufs-driver/
+cat << EOFF > ${TMP}/etc/docker/aufs.sd.daemon.json
+{
+  "storage-driver": "aufs"
+}
+EOFF
+
+# https://docs.docker.com/storage/storagedriver/btrfs-driver/
+cat << EOFF > ${TMP}/etc/docker/btrfs.sd.daemon.json
+{
+  "storage-driver": "btrfs"
+}
+EOFF
+
+# https://docs.docker.com/storage/storagedriver/device-mapper-driver/
+cat << EOFF > ${TMP}/etc/docker/dm.sd.daemon.json
+{
+  "storage-driver": "devicemapper",
+  "storage-opts": [
+    "dm.thinpooldev=/dev/mapper/thin-pool",
+    "dm.use_deferred_deletion=true",
+    "dm.use_deferred_removal=true"
+  ]
+}
+EOFF
+
+# https://docs.docker.com/storage/storagedriver/overlayfs-driver/
+cat << EOFF > ${TMP}/etc/docker/o2.sd.daemon.json
+{
+  "storage-driver": "overlay2"
+}
+EOFF
+
+# https://serverfault.com/questions/948339/networking-between-kvm-vm-and-docker-container-on-same-host
+cat << EOFF > ${TMP}/etc/docker/networking.daemon.json
+{
+  "bridge": "br0",
+  "iptables": false
+}
+EOFF
+
+cat << EOFF > ${TMP}/etc/docker/nvidia.daemon.json
+{
+  "default-runtime":"nvidia",
+  "runtimes": {
+    "nvidia": {
+      "path": "nvidia-container-runtime",
+      "runtimeArgs": []
+    }
+  }
+}
+EOFF
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
