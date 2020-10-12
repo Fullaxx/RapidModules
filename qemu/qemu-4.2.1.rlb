@@ -30,9 +30,6 @@ if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1;
 tar xvf ${TARBALL}
 pushd "${PKG}"
 
-# from qemu-3.1.1.1
-# sed -e 's@^static type name (void)@type name (void)@' -i linux-user/syscall.c
-
 # Automatically determine the architecture we're building on:
 if [ -z "${ARCH}" ]; then
   case "$( uname -m )" in
@@ -96,12 +93,14 @@ CXXFLAGS="${SLKCFLAGS}" \
 --enable-vnc-png \
 --enable-crypto-afalg \
 --enable-numa \
+--enable-spice \
+--enable-libusb \
+--enable-usb-redir \
 --target-list=${QEMUTARGETLIST}
 
 # Other Options
 # --enable-docs
 # --enable-numa (reqs numactl devel)
-# --enable-libusb (reqs libusb devel >= 1.0.13)
 # --enable-tcmalloc
 # --enable-jemalloc
 # --enable-virtfs
