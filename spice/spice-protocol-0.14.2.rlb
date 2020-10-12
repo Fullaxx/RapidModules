@@ -1,0 +1,52 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="spice-protocol"
+VERS="0.14.2"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${PKG}.tar.xz"
+RLBFDIR=`dirname $0`
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+# Activate meson
+if [ ! -x /usr/bin/meson ]; then
+  echo "I need /usr/bin/meson from meson-*.txz to build"
+  exit 1
+fi
+
+# Activate ninja
+if [ ! -x /usr/bin/ninja ]; then
+  echo "I need /usr/bin/ninja from ninja-*.txz to build"
+  exit 1
+fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+tar xvf ${TARBALL}
+pushd ${PKG}
+
+mkdir build
+mkdir -p ${TMP}/usr/doc/${PKG}
+meson setup --prefix=/usr build
+( cd build; DESTDIR=${TMP} ninja install )
+
+# Documentation
+cp AUTHORS CHANGELOG.md COPYING README.md ${TMP}/usr/doc/${PKG}/
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-noarch-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
