@@ -86,7 +86,7 @@ CXXFLAGS="${SLKCFLAGS}" \
 --enable-lzo \
 --enable-bzip2 \
 --enable-libssh \
---audio-drv-list=alsa,oss,sdl \
+--audio-drv-list=oss,alsa,sdl,pa \
 --enable-vnc \
 --enable-vnc-sasl \
 --enable-vnc-jpeg \
