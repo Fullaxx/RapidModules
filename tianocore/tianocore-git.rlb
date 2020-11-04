@@ -1,0 +1,47 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="tianocore"
+VERS=`date "+%Y%m%d"`
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+# Activate acpica (to build iasl)
+if [ ! -x /usr/bin/iasl ]; then
+  echo "I need /usr/bin/iasl from acpica-*.xzm"
+  exit 1
+fi
+
+git clone https://github.com/tianocore/edk2.git ${NAME}
+pushd ${NAME}
+
+# create the TMP directory, compile the code and install to ${TMP}
+git submodule update --init
+( cd BaseTools/; make ${MAKEALLCPUS} )
+
+# nice OvmfPkg/build.sh -a X64 -n $(getconf _NPROCESSORS_ONLN)
+# nice OvmfPkg/build.sh -a X64 -n `nproc`
+OvmfPkg/build.sh -a X64 -n `nproc`
+
+# install -D -m 0644 ./Build/OvmfX64/DEBUG_GCC5/FV/MEMFD.fd ${TMP}/usr/share/OVMF/MEMFD.fd
+# install -D -m 0644 ./Build/OvmfX64/DEBUG_GCC5/FV/OVMF.fd ${TMP}/usr/share/OVMF/OVMF.fd
+install -D -m 0644 ./Build/OvmfX64/DEBUG_GCC5/FV/OVMF_CODE.fd ${TMP}/usr/share/OVMF/OVMF_CODE.fd
+install -D -m 0644 ./Build/OvmfX64/DEBUG_GCC5/FV/OVMF_VARS.fd ${TMP}/usr/share/OVMF/OVMF_VARS.fd
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-noarch-${PKGREV}.xzm
+rm -rf ${NAME}
+rm -rf ${TMP}
+
+# EOF
