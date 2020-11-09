@@ -5,7 +5,7 @@
 set -e
 
 NAME="terminator"
-VERS="1.91"
+VERS="1.92"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
@@ -47,7 +47,7 @@ fi
 # python setup.py build --without-gettext
 mkdir -p ${TMP}/usr/doc/${PKG}
 # --without-gettext doesn't appear to work correctly, so we hand-jam it
-sed -e 's/self.without_gettext = False/self.without_gettext = True/' -i setup.py
+# sed -e 's/self.without_gettext = False/self.without_gettext = True/' -i setup.py
 # python setup.py install --root=${TMP} --record=${TMP}/usr/doc/${PKG}/record.txt
 python3 setup.py install --root=${TMP} --record=${TMP}/usr/doc/${PKG}/record.txt
 
@@ -57,7 +57,7 @@ if [ -d ${TMP}/usr/share/man ]; then
 fi
 
 # Documentation
-cp AUTHORS COPYING ChangeLog PKG-INFO README ${TMP}/usr/doc/${PKG}/
+cp AUTHORS *.txt *.md COPYING INSTALL MANIFEST.in ${TMP}/usr/doc/${PKG}/
 
 # Remove locales
 rm -rf ${TMP}/usr/share/locale

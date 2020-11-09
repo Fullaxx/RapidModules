@@ -4,8 +4,8 @@
 
 set -e
 
-NAME="terminator"
-VERS="1.91"
+NAME="configobj"
+VERS="5.0.6"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
@@ -44,23 +44,10 @@ else
 fi
 
 # Build and Install
-# python setup.py build --without-gettext
-mkdir -p ${TMP}/usr/doc/${PKG}
-# --without-gettext doesn't appear to work correctly, so we hand-jam it
-sed -e 's/self.without_gettext = False/self.without_gettext = True/' -i setup.py
-# python setup.py install --root=${TMP} --record=${TMP}/usr/doc/${PKG}/record.txt
-python3 setup.py install --root=${TMP} --record=${TMP}/usr/doc/${PKG}/record.txt
-
-# Relocate the man pages
-if [ -d ${TMP}/usr/share/man ]; then
-  mv ${TMP}/usr/share/man ${TMP}/usr/
-fi
-
-# Documentation
-cp AUTHORS COPYING ChangeLog PKG-INFO README ${TMP}/usr/doc/${PKG}/
-
-# Remove locales
-rm -rf ${TMP}/usr/share/locale
+# python setup.py build
+mkdir ${TMP}
+# python setup.py install --root=${TMP}
+python3 setup.py install --root=${TMP}
 
 # back out and copy this script to the module
 popd
