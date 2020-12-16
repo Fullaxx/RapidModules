@@ -27,6 +27,12 @@ if [ ! -x /usr/bin/ninja ]; then
   exit 1
 fi
 
+# Activate rpcgen
+if [ ! -x /usr/bin/rpcgen ]; then
+  echo "I need /usr/bin/rpcgen from rpcsvc-proto-*.txz to build"
+  exit 1
+fi
+
 if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
 tar xvf ${TARBALL}
 pushd ${PKG}
@@ -69,6 +75,11 @@ DESTDIR=${TMP} ninja -C build install
 
 # Remove All Locales
 rm -rf ${TMP}/usr/share/locale
+
+# Move man pages to the right place
+if [ -d ${TMP}/usr/share/man ]; then
+  mv ${TMP}/usr/share/man ${TMP}/usr/
+fi
 
 # Move Docs to the right place
 if [ -d ${TMP}/usr/share/doc ]; then
