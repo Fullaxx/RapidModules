@@ -1,0 +1,34 @@
+diff -uar qt-recordmydesktop-0.3.8.orig/src/rmdPrefsWidget.py qt-recordmydesktop-0.3.8/src/rmdPrefsWidget.py
+--- qt-recordmydesktop-0.3.8.orig/src/rmdPrefsWidget.py	2008-11-23 16:09:14.000000000 +0100
++++ qt-recordmydesktop-0.3.8/src/rmdPrefsWidget.py	2013-11-30 00:37:25.903409316 +0100
+@@ -302,9 +302,29 @@
+     def remPort(self,lwi):
+         self.jack_lsp_listSave.takeItem(self.jack_lsp_listSave.row(lwi))
+ 
++    def which(self,program):
++        import os
++        def is_exe(fpath):
++            return os.path.exists(fpath) and os.access(fpath, os.X_OK)
++
++        fpath, fname = os.path.split(program)
++        if fpath:
++            if is_exe(program):
++                return program
++        else:
++            for path in os.environ["PATH"].split(os.pathsep):
++                exe_file = os.path.join(path, program)
++                if is_exe(exe_file):
++                    return exe_file
++
++        return None
++
+     def __runJackLSP__(self,button=None):
+         self.ports=[]
+         failed=0
++        if self.which('jack_lsp') == None:
++            self.jack_button.setEnabled(False)
++            return
+         (stdin,stdout,stderr)=os.popen3(['jack_lsp'],'t')
+         ports=stdout.readlines()
+         stdin.close()
+Only in qt-recordmydesktop-0.3.8/src: rmdPrefsWidget.py.orig
