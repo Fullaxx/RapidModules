@@ -63,7 +63,7 @@ make install DESTDIR=${TMP}
 
 # Documentation
 mkdir -p ${TMP}/usr/doc/${PKG}
-cp LICENSE README THANKS TODO ${TMP}/usr/doc/${PKG}/
+cp LICENSE README.md THANKS TODO ${TMP}/usr/doc/${PKG}/
 
 # back out and copy this script to the module
 popd
