@@ -56,14 +56,23 @@ docker_setup()
     mkdir /var/lib/docker
   fi
   if ! mount | grep -q '/var/lib/docker' ; then
-    /sbin/mount tmpfs /var/lib/docker -t tmpfs
+    if [ -L /dev/disk/by-label/varlibdocker ]; then
+      /sbin/mount /dev/disk/by-label/varlibdocker /var/lib/docker
+    else
+      /sbin/mount tmpfs /var/lib/docker -t tmpfs
+    fi
   fi
 }
 
 docker_start()
 {
-  echo "Starting Docker: /usr/bin/dockerd &"
-  /usr/bin/dockerd -s aufs >>/var/log/docker.log 2>&1 &
+  if mount | grep '/var/lib/docker' | grep -q tmpfs; then
+    echo "Starting Docker: /usr/bin/dockerd -s aufs &"
+    /usr/bin/dockerd -s aufs >>/var/log/docker.log 2>&1 &
+  else
+    echo "Starting Docker: /usr/bin/dockerd &"
+    /usr/bin/dockerd >>/var/log/docker.log 2>&1 &
+  fi
 }
 
 docker_stop()
