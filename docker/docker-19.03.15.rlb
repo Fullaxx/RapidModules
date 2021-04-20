@@ -6,7 +6,7 @@ set -e
 
 NAME="docker"
 VERS="19.03.15"
-DCVERS="1.28.5"
+DCVERS="1.28.6"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 TMP="/tmp/${NAME}-mod-$$"
@@ -176,6 +176,26 @@ cat << EOFF > ${TMP}/etc/docker/nvidia.daemon.json
   }
 }
 EOFF
+
+mkdir -p ${TMP}/usr/bin
+cat << EOFF > ${TMP}/usr/bin/rl_make_varlibdocker.sh
+#!/bin/bash
+
+if [ -z "\$1" ]; then
+  >&2 echo "\$0: <PART>"
+  exit 1
+fi
+
+PART="\$1"
+if [ ! -b "\${PART}" ]; then
+  >&2 echo "\${PART} is not a block device!"
+  exit 2
+fi
+
+mkfs.btrfs -L varlibdocker \${PART}
+
+EOFF
+chmod 0755 ${TMP}/usr/bin/rl_make_varlibdocker.sh
 
 # Package up the modules and clean up
 dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
