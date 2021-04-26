@@ -4,7 +4,7 @@ set -e
 
 NAME="vivaldi"
 VERS="3.7.2218.52"
-FVERS="89.0.4389.82"
+FVERS="89.0.4389.90"
 WVERS="4.10.1582.2"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
