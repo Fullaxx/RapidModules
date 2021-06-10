@@ -1,0 +1,67 @@
+#!/bin/bash
+
+set -e
+
+NAME="LibreOffice"
+AFILE="LO"
+VERS="7.0.6"
+ARCH="x86-64"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${NAME}_${VERS}_Linux_${ARCH}_rpm.tar.gz"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+tar xvf ${TARBALL}
+pushd ${NAME}_${VERS}*_Linux_${ARCH}_rpm/RPMS
+
+# *** NOTE *** LibreOffice Draw needs libreoffice6.0/program/libsdlo.so
+# *** NOTE *** libsdlo.so needs libavahi-common.so.3 and libavahi-client.so.3
+
+rm *-dict-es-*
+rm *-dict-fr-*
+rm *-gnome-integration-*
+rm *-kde-integration-*
+rm *-onlineupdate-*
+rm *-postgresql-sdbc-*
+
+mkdir ${TMP}
+
+for RPM in *.rpm; do echo "Converting ${RPM} ..."; rpm2xzm ${RPM} >/null; done
+for XZM in *.xzm; do echo "Extracting ${XZM} ..."; xzm2dir ${XZM} ${TMP} >/null; done
+
+cat << EOFF > ${TMP}/usr/bin/${AFILE}
+#!/bin/bash
+
+LOBIN="libreoffice"
+
+if [ "\$#" -gt 0 ]; then
+  \$LOBIN --nologo "\$*" &
+  exit 0
+fi
+
+\$LOBIN &
+EOFF
+
+chmod 0755 ${TMP}/usr/bin/${AFILE}
+
+# Symlink the libreoffice binary
+( cd ${TMP}/usr/bin; ln -s libreoffice?.? libreoffice )
+
+# Symlink the libreoffice main svg
+( cd ${TMP}/usr/share/icons/hicolor/scalable/apps; ln -s libreoffice?.?-main.svg libreoffice-main.svg )
+
+# Symlink the libreoffice main pngs
+#for ICONDIR in 16x16 32x32 48x48 128x128 256x256 512x512;
+
+for ICONSIZE in `find ${TMP}/usr/share/icons/hicolor -name *.png | cut -d/ -f 8 | sort -u`;
+  do ( cd ${TMP}/usr/share/icons/hicolor/${ICONSIZE}/apps; ln -s libreoffice?.?-main.png libreoffice-main.png );
+done
+
+popd
+dir2xzm ${TMP} ${NAME}-${VERS}-${ARCH}-${PKGREV}.xzm
+rm -r ${NAME}_${VERS}*_Linux_${ARCH}_rpm ${TMP}
+
+rename "x86-64" "x86_64" *.xzm
