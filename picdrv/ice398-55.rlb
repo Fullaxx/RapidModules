@@ -1,0 +1,39 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="000a-picdrv"
+IR="55" # ICE PATCH REVISION
+VERS="3.9.8.${IR}"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+ZIPFILE="${PKGDIR}/ice398-${IR}.zip"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${ZIPFILE} ]; then echo "${ZIPFILE} doesnt exist, exiting..."; exit 1; fi
+mkdir -p ${TMP}/opt
+unzip ${ZIPFILE} -d ${TMP}/opt
+
+pushd ${TMP}/opt/ice398-${IR}/drv/lnx
+if [[ `uname -r` == 5.* ]]; then sed -s '/isdnif.h/d' -i picdrv.c; fi
+./icepic make
+mkdir -p ${TMP}/etc/rc.d/
+cp icepic ${TMP}/etc/rc.d/rc.icepic
+mkdir -p ${TMP}/lib/modules/`uname -r`/extra/
+cp picdrv.ko ${TMP}/lib/modules/`uname -r`/extra/
+popd
+
+# fix some random bullshit
+sed -e 's@/var/local/.icereboot@/dev/null@' -i ${TMP}/etc/rc.d/rc.icepic
+
+# Package up the modules and clean up
+rm -rf ${TMP}/opt
+dir2xzm ${TMP} ${PKG}-`uname -r`.xzm
+rm -rf ${TMP}
+
+# EOF
