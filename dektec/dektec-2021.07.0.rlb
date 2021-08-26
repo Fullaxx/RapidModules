@@ -1,0 +1,35 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="dektec"
+VERS="2021.07.0"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/LinuxSDK_v${VERS}.tar.gz"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+mkdir -p ${TMP}/opt
+tar xf ${TARBALL} -C ${TMP}/opt
+
+pushd ${TMP}/opt/LinuxSDK/Drivers/Dta/Source/Linux/
+make
+#mkdir -p ${TMP}/etc/udev/rules.d/
+install -D -o root -g root -m 0644 51-dta.rules ${TMP}/etc/udev/rules.d/51-dta.rules
+#mkdir -p ${TMP}/lib/modules/`uname -r`/extra/
+#cp picdrv.ko ${TMP}/lib/modules/`uname -r`/extra/
+install -D -o root -g root -m 0644 Dta.ko ${TMP}/lib/modules/`uname -r`/extra/Dta.ko
+popd
+
+# Package up the modules and clean up
+rm -rf ${TMP}/opt
+dir2xzm ${TMP} ${PKG}-`uname -r`.xzm
+rm -rf ${TMP}
+
+# EOF
