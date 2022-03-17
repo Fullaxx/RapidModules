@@ -1,0 +1,54 @@
+#!/bin/bash
+
+set -e
+
+NAME="veracrypt"
+VERS="1.25.9"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ -z "${UI}" ]; then
+  echo "$0: <console|gtk2|gtk3>"
+  exit 1
+fi
+
+if [ "${UI}" != "console" ] && [ "${UI}" != "gtk2" ] [ "${UI}" != "gtk3" ]; then
+  echo "$0: <console|gtk2|gtk3>"
+  exit 1
+fi
+
+# Automatically determine the architecture we're building on:
+if [ -z "${ARCH}" ]; then
+  ARCH="$( uname -m )"
+fi
+
+case "${ARCH}" in
+  x32) VCARCH="i386"; PKGARCH="i386" ;;
+  x86) VCARCH="i386"; PKGARCH="i386" ;;
+  i?86) VCARCH="i386"; PKGARCH="i386" ;;
+  x64) VCARCH="amd64"; PKGARCH="x86_64" ;;
+  x86_64) VCARCH="amd64"; PKGARCH="x86_64" ;;
+  amd64) VCARCH="amd64"; PKGARCH="x86_64" ;;
+  *) echo "Unknown Version: ${ARCH}"; exit 1 ;;
+esac
+
+TARBALL="${NAME}_${VERS}_${UI}_${VCARCH}.tar.gz"
+if [ ! -f "${PKGDIR}/${TARBALL}" ]; then
+  echo "${PKGDIR}/${TARBALL} not found!"
+  exit 1
+fi
+
+mkdir -p ${TMP}/usr/doc
+tar xvf ${PKGDIR}/${TARBALL} -C ${TMP}
+mv ${TMP}/usr/share/doc/veracrypt ${TMP}/usr/doc/${NAME}-${VERS}
+rmdir ${TMP}/usr/share/doc
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${NAME}-${UI}-${VERS}-${PKGARCH}-${PKGREV}.xzm
+rm -rf ${NAME}
+rm -rf ${TMP}
+
+# EOF
