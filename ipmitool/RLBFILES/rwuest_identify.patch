@@ -1,0 +1,24 @@
+--- ipmitool-1.8.13/lib/ipmi_chassis.c.orig	2013-07-09 22:22:12.000000000 -0600
++++ ipmitool-1.8.13/lib/ipmi_chassis.c	2014-12-02 17:24:11.511351378 -0700
+@@ -361,6 +361,21 @@
+ 	printf("Front-Panel Lockout  : %s\n", (rsp->data[2] & 0x2) ? "active" : "inactive");
+ 	printf("Drive Fault          : %s\n", (rsp->data[2] & 0x4) ? "true" : "false");
+ 	printf("Cooling/Fan Fault    : %s\n", (rsp->data[2] & 0x8) ? "true" : "false");
++	printf("Chassis Identify     : ");
++	switch (rsp->data[2] & 0x30) {
++	case 0x00:
++		printf("off\n");
++		break;
++	case 0x10:
++		printf("Temporary on\n");
++		break;
++	case 0x20:
++		printf("On\n");
++		break;
++	default:
++		printf("Unknown\n");
++		break;
++	}
+ 
+ 	if (rsp->data_len > 3) {
+ 		/* optional byte 4 */

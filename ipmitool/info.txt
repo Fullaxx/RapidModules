@@ -1,0 +1,3 @@
+ipmitool chassis identify force
+ipmitool chassis identify 10
+ipmitool chassis identify 0
