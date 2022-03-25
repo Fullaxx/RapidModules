@@ -1,0 +1,48 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="libnvidia-container"
+VERS="1.7.0"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-`pwd`}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+mkdir -p ${TMP}/pkgs ${TMP}/usr/doc/
+(
+  set -e
+  cd ${TMP}/pkgs
+  rpm2txz ${PKGDIR}/libnvidia-container1-${VERS}-1.x86_64.rpm
+  rpm2txz ${PKGDIR}/libnvidia-container-tools-${VERS}-1.x86_64.rpm
+  rpm2txz ${PKGDIR}/libnvidia-container-devel-${VERS}-1.x86_64.rpm
+)
+for TARBALL in ${TMP}/pkgs/*.txz; do
+  tar xf ${TARBALL} -C ${TMP}/
+done
+chmod 0644 ${TMP}/usr/lib64/*.so.*
+mv ${TMP}/usr/share/licenses/* ${TMP}/usr/doc/
+rmdir ${TMP}/usr/share/licenses ${TMP}/usr/share
+rm -rf ${TMP}/pkgs
+
+if [ -d ${TMP}/install ]; then
+  if [ -f ${TMP}/install/doinst.sh ]; then
+    bash -c "cd ${TMP}; source ./install/doinst.sh"
+  fi
+  rm -rf ${TMP}/install
+fi
+
+# copy this script to the module
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
