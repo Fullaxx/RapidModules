@@ -1,0 +1,58 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="nvidia-container-toolkit"
+VERS="1.8.0"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-`pwd`}
+TARBALL="${PKGDIR}/${PKG}.tar.gz"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+# Activate go
+if [ ! -x /usr/bin/go ]; then
+  echo "I need /usr/bin/go from gcc-go-*.txz!"
+  exit 1
+fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+tar xf ${TARBALL}
+pushd ${PKG}
+
+mkdir gopath bin
+GO111MODULE=auto \
+GOPATH=`pwd`/gopath \
+go build -v \
+  -modcacherw \
+  -buildmode=pie \
+  -gcflags "all=-trimpath=${PWD}" \
+  -asmflags "all=-trimpath=${PWD}" \
+  -ldflags "-s -w -extldflags ${LDFLAGS}" \
+  -o bin \
+  "./..."
+
+# Install
+mkdir -p ${TMP}/usr/bin ${TMP}/etc/nvidia-container-runtime ${TMP}/usr/doc/${PKG}
+install -m 0644 LICENSE ${TMP}/usr/doc/${PKG}/LICENSE
+install -m 0644 config/config.toml.* ${TMP}/etc/nvidia-container-runtime/
+install -m 0755 bin/nvidia-container-toolkit ${TMP}/usr/bin/nvidia-container-toolkit
+install -m 0755 bin/nvidia-container-runtime ${TMP}/usr/bin/nvidia-container-runtime
+install -m 0755 bin/nvidia-toolkit ${TMP}/usr/bin/nvidia-toolkit
+ln -s ${NAME} ${TMP}/usr/bin/nvidia-container-runtime-hook
+
+# copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
