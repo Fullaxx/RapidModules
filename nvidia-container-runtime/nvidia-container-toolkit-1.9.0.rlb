@@ -44,6 +44,7 @@ install -m 0755 bin/nvidia-container-toolkit ${TMP}/usr/bin/nvidia-container-too
 install -m 0755 bin/nvidia-container-runtime ${TMP}/usr/bin/nvidia-container-runtime
 install -m 0755 bin/nvidia-toolkit ${TMP}/usr/bin/nvidia-toolkit
 ln -s ${NAME} ${TMP}/usr/bin/nvidia-container-runtime-hook
+cp ${TMP}/etc/nvidia-container-runtime/config.toml.centos ${TMP}/etc/nvidia-container-runtime/config.toml
 
 # copy this script to the module
 popd
