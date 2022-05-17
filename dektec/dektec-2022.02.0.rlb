@@ -20,11 +20,14 @@ tar xf ${TARBALL} -C ${TMP}/opt
 
 pushd ${TMP}/opt/LinuxSDK/Drivers/Dta/Source/Linux/
 make
-#mkdir -p ${TMP}/etc/udev/rules.d/
 install -D -o root -g root -m 0644 51-dta.rules ${TMP}/etc/udev/rules.d/51-dta.rules
-#mkdir -p ${TMP}/lib/modules/`uname -r`/extra/
-#cp picdrv.ko ${TMP}/lib/modules/`uname -r`/extra/
 install -D -o root -g root -m 0644 Dta.ko ${TMP}/lib/modules/`uname -r`/extra/Dta.ko
+popd
+
+pushd ${TMP}/opt/LinuxSDK/Drivers/DtPcie/Source/Linux/
+make
+install -D -o root -g root -m 0644 51-dtpcie.rules ${TMP}/etc/udev/rules.d/51-dtpcie.rules
+install -D -o root -g root -m 0644 DtPcie.ko ${TMP}/lib/modules/`uname -r`/extra/DtPcie.ko
 popd
 
 # Package up the modules and clean up
