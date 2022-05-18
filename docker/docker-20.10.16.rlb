@@ -27,9 +27,12 @@ mv ${TMP}/usr/docker ${TMP}/usr/bin
 curl -L https://github.com/docker/compose/releases/download/${DCVERS}/docker-compose-Linux-x86_64 \
 -o ${TMP}/usr/bin/docker-compose
 
-MAJMINVERS=`echo "${VERS}" | cut -d. -f1-2`
+#MAJMINVERS=`echo "${VERS}" | cut -d. -f1-2`
+#DBCURL="https://raw.githubusercontent.com/docker/docker-ce/${MAJMINVERS}/components/cli/contrib/completion/bash/docker"
+#DBCURL="https://raw.githubusercontent.com/docker/docker-ce/master/components/cli/contrib/completion/bash/docker"
+DBCURL="https://raw.githubusercontent.com/docker/cli/master/contrib/completion/bash/docker"
 mkdir -p ${TMP}/etc/bash_completion.d
-curl -L https://raw.githubusercontent.com/docker/docker-ce/${MAJMINVERS}/components/cli/contrib/completion/bash/docker \
+curl -L ${DBCURL} \
 -o ${TMP}/etc/bash_completion.d/docker
 
 # Download bash-completion
