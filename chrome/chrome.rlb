@@ -7,7 +7,7 @@ set -e
 NAME="chrome"
 TMP="/tmp/chrome-buildmod-$$"
 SCRIPTDIR=`dirname $0`
-BUILDSCRIPT="google-chrome.SlackBuild-190911"
+BUILDSCRIPT="google-chrome.SlackBuild-220519"
 
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
@@ -42,7 +42,7 @@ rm ${RLPKGFILENAME}
 if [ ! -e ${TMP}/usr/bin/google-chrome ]; then ln -s google-chrome-stable ${TMP}/usr/bin/google-chrome; fi
 
 # SlackBuild uses a bad forloop that leaves us with a dead link ending in .gz.gz
-rm -f ${TMP}/usr/man/man1/*.gz.gz
+# rm -f ${TMP}/usr/man/man1/*.gz.gz
 chmod 0644 ${TMP}/usr/man/man1/*.1
 
 if [ -d ${TMP}/usr/share/doc ]; then mv ${TMP}/usr/share/doc ${TMP}/usr/; fi
