@@ -1,0 +1,47 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="vscode"
+VERS="1.66.2"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+wget https://update.code.visualstudio.com/${VERS}/linux-x64/stable -O /tmp/vscode.tar.gz
+if [ ! -e /tmp/vscode.tar.gz ]; then echo "/tmp/vscode.tar.gz doesnt exist, exiting..."; exit 1; fi
+mkdir -p ${TMP}/opt ${TMP}/usr/bin
+tar xvf /tmp/vscode.tar.gz -C ${TMP}/opt
+rm /tmp/vscode.tar.gz
+mv ${TMP}/opt/VSCode-linux-x64 ${TMP}/opt/vscode
+
+# Fix Owndership
+chown -R root.root ${TMP}/opt
+
+# Make a link in /usr/bin
+# ln -s /opt/vscode/bin/code ${TMP}/usr/bin/vscode
+
+# Instead of a symlink, lets create a bash script
+cat << EOFF > ${TMP}/usr/bin/vscode
+#!/bin/bash
+
+mkdir -p \${HOME}/vscode
+/opt/vscode/bin/code --user-data-dir \${HOME}/vscode
+EOFF
+chmod 0755 ${TMP}/usr/bin/vscode
+
+# copy this script to the module
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
