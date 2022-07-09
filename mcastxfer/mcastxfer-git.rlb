@@ -1,0 +1,46 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="mcastxfer"
+VERS=`date "+%Y%m%d"`
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+RLBFDIR=`dirname $0`
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+git clone https://github.com/Fullaxx/mcast_xfer.git
+mv mcast_xfer ${PKG}
+pushd ${PKG}
+
+# Automatically determine the architecture we're building on:
+if [ -z "${ARCH}" ]; then
+  case "$( uname -m )" in
+    #i?86) export ARCH=i486 ;;
+    arm*) export ARCH=arm ;;
+    # Unless ${ARCH} is already set, use uname -m for all other archs:
+       *) export ARCH=$( uname -m ) ;;
+  esac
+fi
+
+# create the TMP directory, compile the code and install to ${TMP}
+( set -e; cd src; ./compile.sh )
+mkdir -p ${TMP}/usr/bin ${TMP}/opt/mcast_xfer
+cp src/*.exe ${TMP}/usr/bin/
+cp scripts/*.sh ${TMP}/opt/mcast_xfer/
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
