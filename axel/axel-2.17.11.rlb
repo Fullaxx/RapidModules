@@ -60,7 +60,7 @@ make install DESTDIR=${TMP}
 
 # Documentation
 mkdir -p ${TMP}/usr/doc/${PKG}
-cp ABOUT-NLS CONTRIBUTING.md COPYING ChangeLog INSTALL NEWS README.md VERSION ${TMP}/usr/doc/${PKG}/
+cp ABOUT-NLS CONTRIBUTING.md COPYING ChangeLog NEWS README.md VERSION ${TMP}/usr/doc/${PKG}/
 
 # Remove locales
 rm -rf ${TMP}/usr/share/locale
