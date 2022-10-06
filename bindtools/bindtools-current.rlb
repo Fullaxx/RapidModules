@@ -39,14 +39,12 @@ tar xf ${TARBALL} -C ${SPDIR}
 rm -r ${SPDIR}/usr/man/man[358]
 
 rm -r ${SPDIR}/{etc,install,var}
-rm -r ${SPDIR}/usr/{doc,include,sbin}
+rm -r ${SPDIR}/usr/{doc,include,lib64/bind,sbin}
 
 for MP in ${SPDIR}/usr/man/man?/*.gz; do gunzip ${MP}; done
 
-rm ${SPDIR}/usr/bin/named-rrchecker
-# rm ${SPDIR}/usr/bin/*-config*
-# rm ${SPDIR}/usr/man/man?/*-config.sh.?
-rm ${SPDIR}/usr/man/man?/named-rrchecker.?
+rm ${SPDIR}/usr/bin/named-*
+rm ${SPDIR}/usr/man/man?/named-*.?
 
 dir2xzm ${SPDIR} ${PKG}
 rm -r ${SPDIR}
