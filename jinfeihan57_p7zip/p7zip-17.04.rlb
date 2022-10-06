@@ -4,16 +4,19 @@
 
 set -e
 
-NAME="7z"
-VERS=`date "+%Y%m%d"`
+NAME="p7zip"
+VERS="17.04"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${PKG}.tar.gz"
 RLBFDIR=`dirname $0`
 TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
-git clone https://github.com/jinfeihan57/p7zip.git ${PKG}
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+tar xvf ${TARBALL}
 pushd ${PKG}
 
 # Automatically determine the architecture we're building on:

@@ -1,0 +1,38 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="linux-p7zip"
+VERS="17.04"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-`pwd`}
+ZIPFILE="${PKGDIR}/${PKG}.zip"
+RLBFDIR=`dirname $0`
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${ZIPFILE} ]; then echo "${ZIPFILE} doesnt exist, exiting..."; exit 1; fi
+
+mkdir -p ${TMP}/usr/bin ${TMP}/usr/lib64
+pushd ${TMP}
+unzip ${ZIPFILE}
+
+rm 7zCon.sfx
+mv 7z 7za 7zr usr/bin/
+mv 7z.so Codecs usr/lib64/
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
