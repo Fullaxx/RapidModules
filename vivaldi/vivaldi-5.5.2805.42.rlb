@@ -1,0 +1,66 @@
+#!/bin/bash
+
+set -e
+
+NAME="vivaldi"
+VERS="5.5.2805.42"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+# Automatically determine the architecture we're building on:
+if [ -z "${ARCH}" ]; then
+  ARCH="$( uname -m )"
+fi
+
+if [ ${PKGDIR} == "." ]; then
+  PKGDIR="${PWD}"
+fi
+
+VDEB="${PKGDIR}/vivaldi-stable_${VERS}-1_amd64.deb"
+if [ ! -e ${VDEB} ]; then echo "${VDEB} doesnt exist!"; exit 1; fi
+
+# copy this script to the module
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+pushd ${TMP}
+ar p ${VDEB} data.tar.xz | tar Jxv
+rm -r etc
+rm -r opt/vivaldi/cron
+rm -f opt/vivaldi/lib/libffmpeg.so
+rmdir usr/share/gnome-control-center/default-apps
+rmdir usr/share/gnome-control-center
+ln -sf /opt/vivaldi/vivaldi ${TMP}/usr/bin/vivaldi
+popd
+
+# Install media codecs
+( cd ${TMP}/opt/vivaldi/; HOME=`pwd` ./update-ffmpeg --user )
+mkdir -p ${TMP}/var/opt
+mv ${TMP}/opt/vivaldi/.local/lib/vivaldi ${TMP}/var/opt/
+rm -rf ${TMP}/opt/vivaldi/.local
+
+for res in 16 22 24 32 48 64 128 256; do
+  install -Dm644 "${TMP}/opt/vivaldi/product_logo_${res}.png" \
+    "${TMP}/usr/share/icons/hicolor/${res}x${res}/apps/vivaldi.png"
+done
+
+sed -e "s|vivaldi-stable|vivaldi|" \
+  ${TMP}/usr/share/applications/vivaldi-stable.desktop \
+    > ${TMP}/usr/share/applications/vivaldi.desktop
+rm ${TMP}/usr/share/applications/vivaldi-stable.desktop
+
+# Documentation
+mkdir -p ${TMP}/usr/doc/${PKG}
+gzip -dc ${TMP}/usr/share/doc/vivaldi-stable/changelog.gz > ${TMP}/usr/doc/${PKG}/ChangeLog
+rm -rf ${TMP}/usr/share/doc
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
