@@ -12,12 +12,16 @@ TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
+ARCH="x86_64"
+PARCH="amd64"
+
 mkdir ${TMP}
 pushd ${TMP}
-curl -L https://github.com/owenthereal/ccat/releases/download/v${VERS}/linux-amd64-${VERS}.tar.gz | tar zxvf -
+curl -L https://github.com/owenthereal/ccat/releases/download/v${VERS}/linux-${PARCH}-${VERS}.tar.gz | tar zxvf -
 mkdir -p ${TMP}/usr/bin ${TMP}/usr/doc
-mv linux-amd64-${VERS}/ccat ${TMP}/usr/bin/
-mv linux-amd64-${VERS} ${TMP}/usr/doc/${PKG}
+mv linux-${PARCH}-${VERS}/ccat ${TMP}/usr/bin/
+mv linux-${PARCH}-${VERS} ${TMP}/usr/doc/${PKG}
+chown -R root:root ${TMP}
 
 # back out and copy this script to the module
 popd
