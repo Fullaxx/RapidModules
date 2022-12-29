@@ -1,0 +1,32 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="ccat"
+VERS="1.1.0"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+mkdir ${TMP}
+pushd ${TMP}
+curl -L https://github.com/owenthereal/ccat/releases/download/v${VERS}/linux-amd64-${VERS}.tar.gz | tar zxvf -
+mkdir -p ${TMP}/usr/bin ${TMP}/usr/doc
+mv linux-amd64-${VERS}/ccat ${TMP}/usr/bin/
+mv linux-amd64-${VERS} ${TMP}/usr/doc/${PKG}
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
+#rm -rf ${NAME}
+rm -rf ${TMP}
+
+# EOF
