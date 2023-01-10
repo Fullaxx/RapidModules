@@ -56,7 +56,7 @@ else
 fi
 
 # Prepare the build
-meson setup build
+meson setup build --prefix=/usr
 if [ -n "${PAUSEFORREVIEW}" ]; then
   echo
   echo "Press any key to continue ..."
@@ -68,19 +68,9 @@ meson compile -C build
 mkdir ${TMP}
 DESTDIR=${TMP} meson install -C build
 
-# Relocate
-(
-  set -e
-  cd ${TMP}/usr/local
-  mv * ../
-  cd ../
-  rmdir local
-  mv etc ../
-  mv share/doc .
-  mv doc/mpv doc/${PKG}
-)
-
 # Documentation
+mv ${TMP}/usr/share/doc ${TMP}/usr/
+mv ${TMP}/usr/doc/mpv ${TMP}/usr/doc/${PKG}
 cp -v DOCS/{encoding,interface-changes,mplayer-changes}.rst ${TMP}/usr/doc/${PKG}/
 
 # back out and copy this script to the module
