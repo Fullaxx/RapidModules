@@ -81,7 +81,7 @@ DESTDIR=${TMP} meson install -C build
 )
 
 # Documentation
-cp -v DOCS/encoding.rst ${TMP}/usr/doc/${PKG}/
+cp -v DOCS/{encoding,interface-changes,mplayer-changes}.rst ${TMP}/usr/doc/${PKG}/
 
 # back out and copy this script to the module
 popd
