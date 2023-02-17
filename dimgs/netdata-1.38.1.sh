@@ -33,7 +33,7 @@ cat << EOFF > ${IDIR}/run.sh
 docker load -i netdata.tar
 docker run -d \\
 --name=netdata \\
--p 1999:19999 \\
+-p 999:19999 \\
 -v netdataconfig:/etc/netdata \\
 -v netdatalib:/var/lib/netdata \\
 -v netdatacache:/var/cache/netdata \\
@@ -45,7 +45,7 @@ docker run -d \\
 --restart unless-stopped \\
 --cap-add SYS_PTRACE \\
 --security-opt apparmor=unconfined \\
-netdata/netdata
+netdata/netdata:latest
 EOFF
 chmod 0700 ${IDIR}/run.sh
 
