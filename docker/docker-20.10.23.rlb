@@ -6,7 +6,7 @@ set -e
 
 NAME="docker"
 VERS="20.10.23"
-DCVERS="1.29.2"
+DCVERS="2.15.1"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 TMP="/tmp/${NAME}-mod-$$"
@@ -15,8 +15,8 @@ if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
 # Download docker
 DTARBALL="/tmp/newdocker-$$.tgz"
-curl -L https://download.docker.com/linux/static/stable/x86_64/docker-${VERS}.tgz \
--o ${DTARBALL}
+DURL="https://download.docker.com/linux/static/stable/x86_64/docker-${VERS}.tgz"
+curl -L ${DURL} -o ${DTARBALL}
 
 mkdir -p ${TMP}/usr ${TMP}/etc/rc.d
 tar xvf ${DTARBALL} -C ${TMP}/usr
@@ -24,20 +24,18 @@ rm ${DTARBALL}
 mv ${TMP}/usr/docker ${TMP}/usr/bin
 
 # Download docker-compose
-curl -L https://github.com/docker/compose/releases/download/${DCVERS}/docker-compose-Linux-x86_64 \
--o ${TMP}/usr/bin/docker-compose
+DCURL="https://github.com/docker/compose/releases/download/v${DCVERS}/docker-compose-linux-x86_64"
+curl -L ${DCURL} -o ${TMP}/usr/bin/docker-compose
 
-#MAJMINVERS=`echo "${VERS}" | cut -d. -f1-2`
-#DBCURL="https://raw.githubusercontent.com/docker/docker-ce/${MAJMINVERS}/components/cli/contrib/completion/bash/docker"
-#DBCURL="https://raw.githubusercontent.com/docker/docker-ce/master/components/cli/contrib/completion/bash/docker"
+# Download bash-completion for docker
 DBCURL="https://raw.githubusercontent.com/docker/cli/master/contrib/completion/bash/docker"
 mkdir -p ${TMP}/etc/bash_completion.d
-curl -L ${DBCURL} \
--o ${TMP}/etc/bash_completion.d/docker
+curl -L ${DBCURL} -o ${TMP}/etc/bash_completion.d/docker
 
-# Download bash-completion
-curl -L https://raw.githubusercontent.com/docker/compose/${DCVERS}/contrib/completion/bash/docker-compose \
--o ${TMP}/etc/bash_completion.d/docker-compose
+# Download bash-completion for docker-compose (THIS APPEARS TO BE OBSOLETE IN v2)
+# DCBCURL="https://raw.githubusercontent.com/docker/compose/master/contrib/completion/bash/docker-compose"
+# DCBCURL="https://raw.githubusercontent.com/Repigeons/docker-compose/7713e473e08f0d9b956e14cdfcfb635fb891d8be/contrib/completion/bash/docker-compose"
+# curl -L ${DCBCURL} -o ${TMP}/etc/bash_completion.d/docker-compose
 
 chown -R root:root ${TMP}/usr/bin
 chmod -R 0755 ${TMP}/usr/bin
