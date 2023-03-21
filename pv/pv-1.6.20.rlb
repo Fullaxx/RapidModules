@@ -63,6 +63,18 @@ make install DESTDIR=${TMP}
 mkdir -p ${TMP}/usr/doc/${PKG}
 cp README doc/COPYING doc/NEWS ${TMP}/usr/doc/${PKG}/
 
+# Example Usage
+cat << EOFF >${TMP}/usr/doc/${PKG}/examples.txt
+pv -cN source <linux-2.2.20.tar.bz2 | bzcat | pv -cN bzcat | gzip -9 | pv -cN gzip >linux-2.2.20.tar.gz
+
+pgrep -x gzip | xargs -n1 -I{} bash -c 'tmux split-window -l 1 pv -ptebar -d {}:3; tmux last-pane'
+
+You can run this in a tmux session and it's going to display a progress bar for each currently running gzip decompression process.
+Quite often I run a massively parallel job and it's difficult to estimate ETA when the process is not uniform.
+This way I'm getting a lot of progress bars and I can get a better feel of the system's performance.
+
+EOFF
+
 # back out and copy this script to the module
 popd
 mkdir -p ${TMP}/usr/src/rlb
