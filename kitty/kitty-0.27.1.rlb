@@ -37,6 +37,14 @@ mkdir -p ${TMP}/opt/kitty ${TMP}/usr/
 tar xvf ${TARBALL} -C ${TMP}/opt/kitty
 mv ${TMP}/opt/kitty/share/man ${TMP}/usr/
 
+(
+# Install kitty-themes
+  cd ${TMP}/opt/kitty
+  git clone https://github.com/kovidgoyal/kitty-themes.git
+  mv kitty-themes/{themes.json,themes} ${TMP}/opt/kitty/share/
+  rm -rf kitty-themes
+)
+
 # back out and copy this script to the module
 mkdir -p ${TMP}/usr/src/rlb
 cp $0 ${TMP}/usr/src/rlb
