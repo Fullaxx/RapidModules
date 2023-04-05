@@ -60,9 +60,9 @@ make install DESTDIR=${TMP}
 
 # Documentation
 mkdir -p ${TMP}/usr/doc
-mv ${TMP}/usr/share/cgdb ${TMP}/usr/doc/
-cp AUTHORS COPYING ChangeLog FAQ NEWS *.md *.txt ${TMP}/usr/doc/cgdb/
-cp ${RLBFDIR}/RLBFILES/cgdb-0.7.1.pdf ${TMP}/usr/doc/cgdb/
+mv ${TMP}/usr/share/cgdb ${TMP}/usr/doc/${PKG}
+cp AUTHORS COPYING ChangeLog FAQ NEWS *.md *.txt ${TMP}/usr/doc/${PKG}/
+cp ${RLBFDIR}/RLBFILES/cgdb-0.7.1.pdf ${TMP}/usr/doc/${PKG}/
 rmdir ${TMP}/usr/share
 
 # back out and copy this script to the module
