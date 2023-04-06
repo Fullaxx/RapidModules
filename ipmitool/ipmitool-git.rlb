@@ -65,10 +65,10 @@ fi
 # --enable-intf-dummy
 # --enable-ipmishell
 
-if [ -n "${CFGSLEEPREVIEW}" ]; then
+if [ -n "${PAUSEFORREVIEW}" ]; then
   echo
-  echo "Sleeping ${CFGSLEEPREVIEW} seconds to review ..."
-  sleep ${CFGSLEEPREVIEW}
+  echo "Press any key to continue ..."
+  read PAUSEFORREVIEW
 fi
 
 # create the TMP directory, compile the code and install to ${TMP}
@@ -77,11 +77,7 @@ mkdir ${TMP}
 make install DESTDIR=${TMP}
 
 # Documentation
-mkdir -p ${TMP}/usr/doc/${PKG}
-mv ${TMP}/usr/share/doc/ipmitool/* ${TMP}/usr/doc/${PKG}/
 cp NEWS ${TMP}/usr/doc/${PKG}/
-rmdir ${TMP}/usr/share/doc/ipmitool
-rmdir ${TMP}/usr/share/doc
 
 # back out and copy this script to the module
 popd
