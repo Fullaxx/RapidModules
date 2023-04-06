@@ -67,7 +67,9 @@ else
   SLKCFLAGS="-O2"
 fi
 
-meson build --prefix=/usr
+# meson build --prefix=/usr
+meson setup --prefix=/usr build
+meson compile -C build
 
 if [ -n "${CFGSLEEPREVIEW}" ]; then
   echo
