@@ -32,6 +32,7 @@ cat << EOFF > ${IDIR}/run.sh
 
 docker load -i portainer.tar
 docker run -d \\
+--ulimit 1048576:1048576 \\
 --name=portainer \\
 --restart=always \\
 -p 8000:8000 \\
