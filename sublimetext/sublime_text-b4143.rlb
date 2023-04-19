@@ -1,0 +1,44 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="sublime_text"
+VERS="4143"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${NAME}_build_${VERS}_x64.tar.xz"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+mkdir -p ${TMP}/opt/ ${TMP}/usr/bin
+tar xvf ${TARBALL} -C ${TMP}/opt
+
+# Fix Owndership
+chown -R root:root ${TMP}/opt
+
+# Make a link in /usr/bin
+# ln -s /opt/vscode/bin/code ${TMP}/usr/bin/vscode
+
+# Instead of a symlink, lets create a bash script
+cat << EOFF > ${TMP}/usr/bin/sublime
+#!/bin/bash
+
+/opt/sublime_text/sublime_text
+EOFF
+chmod 0755 ${TMP}/usr/bin/sublime
+
+# copy this script to the module
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
