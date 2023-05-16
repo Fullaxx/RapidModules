@@ -1,0 +1,36 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="delta"
+VERS="0.15.1"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${NAME}-${VERS}-x86_64-unknown-linux-gnu.tar.gz"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+mkdir -p ${TMP}/usr/
+tar xvf ${TARBALL} -C ${TMP}/usr/
+mv ${TMP}/usr/${NAME}-${VERS}-x86_64-unknown-linux-gnu ${TMP}/usr/bin
+
+mkdir -p ${TMP}/usr/doc/${PKG}
+mv ${TMP}/usr/bin/{README.md,LICENSE} ${TMP}/usr/doc/${PKG}/
+
+chown root:root ${TMP}/usr/bin/delta ${TMP}/usr/doc/${PKG}/*
+
+# copy this script to the module
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
