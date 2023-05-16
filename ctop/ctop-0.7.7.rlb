@@ -1,0 +1,31 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="ctop"
+VERS="0.7.7"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+mkdir -p ${TMP}/usr/bin
+wget https://github.com/bcicen/ctop/releases/download/v${VERS}/ctop-${VERS}-linux-amd64 -O ${TMP}/usr/bin/ctop
+chmod 0755 ${TMP}/usr/bin/ctop
+
+mkdir -p ${TMP}/usr/doc/${PKG}
+wget https://raw.githubusercontent.com/bcicen/ctop/master/README.md -O ${TMP}/usr/doc/${PKG}/README.md
+
+# copy this script to the module
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
