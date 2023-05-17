@@ -1,6 +1,6 @@
 #!/bin/bash
-# https://github.com/dperson/samba
-# https://hub.docker.com/r/dperson/samba
+# https://github.com/lirantal/dockly/blob/main/README.md
+# https://hub.docker.com/r/lirantal/dockly
 
 set -e
 
