@@ -1,0 +1,35 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="micro"
+VERS="2.0.11"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKG}-linux64-static.tar.gz"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+mkdir -p ${TMP}/usr/bin ${TMP}/usr/man/man1 ${TMP}/usr/doc ${TMP}/usr/share/micro
+tar xvf ${TARBALL} -C ${TMP}/usr/doc
+mv ${TMP}/usr/doc/${PKG}/micro ${TMP}/usr/bin
+mv ${TMP}/usr/doc/${PKG}/micro.1 ${TMP}/usr/man/man1
+mv ${TMP}/usr/doc/${PKG}/*.{svg,desktop} ${TMP}/usr/share/micro/
+chown -R root:root ${TMP}/usr
+chmod 0755 ${TMP}/usr/bin/micro
+
+# copy this script to the module
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
