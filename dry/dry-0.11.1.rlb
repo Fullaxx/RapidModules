@@ -1,0 +1,31 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="dry"
+VERS="0.11.1"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+mkdir -p ${TMP}/usr/bin ${TMP}/usr/doc/${PKG}
+wget https://github.com/moncho/dry/releases/download/v0.11.1/dry-linux-amd64 -O ${TMP}/usr/bin/dry
+wget https://raw.githubusercontent.com/moncho/dry/master/README.md -O ${TMP}/usr/doc/${PKG}/README.md
+wget https://raw.githubusercontent.com/moncho/dry/master/LICENSE -O ${TMP}/usr/doc/${PKG}/LICENSE
+chown -R root:root ${TMP}/usr
+chmod 0755 ${TMP}/usr/bin/dry
+
+# copy this script to the module
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
