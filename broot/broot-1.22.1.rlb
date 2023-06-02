@@ -1,0 +1,54 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="broot"
+VERS="1.22.1"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+ZIPFILE="${NAME}_${VERS}.zip"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${ZIPFILE} ]; then echo "${ZIPFILE} doesnt exist, exiting..."; exit 1; fi
+mkdir -p ${TMP}/tmp
+unzip ${ZIPFILE} -d ${TMP}/tmp/
+
+mkdir -p ${TMP}/usr/bin
+mv ${TMP}/tmp/x86_64-unknown-linux-gnu/broot ${TMP}/usr/bin/
+
+mkdir -p ${TMP}/usr/man/man1
+mv ${TMP}/tmp/broot.1 ${TMP}/usr/man/man1/
+
+mkdir -p ${TMP}/usr/share/bash-completion/completions/
+mv ${TMP}/tmp/completion/* ${TMP}/usr/share/bash-completion/completions/
+rm ${TMP}/usr/share/bash-completion/completions/*.{elv,fish}
+
+mkdir -p ${TMP}/usr/share/broot
+mv ${TMP}/tmp/default-conf ${TMP}/usr/share/broot/
+
+mkdir -p ${TMP}/usr/doc/${PKG}
+mv ${TMP}/tmp/version ${TMP}/usr/doc/${PKG}/
+mv ${TMP}/tmp/*.md ${TMP}/usr/doc/${PKG}/
+
+mkdir -p ${TMP}/etc/profile.d/
+${TMP}/usr/bin/broot --print-shell-function bash >${TMP}/etc/profile.d/br.sh
+chmod 0755 ${TMP}/etc/profile.d/br.sh
+
+chown root:root -R ${TMP}
+rm -rf ${TMP}/tmp
+
+# copy this script to the module
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
