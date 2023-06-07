@@ -31,7 +31,7 @@ fi
 ( set -e; cd src; ./compile.sh )
 mkdir -p ${TMP}/usr/bin ${TMP}/opt/mcast_xfer
 cp src/*.exe ${TMP}/usr/bin/
-cp scripts/*.sh ${TMP}/opt/mcast_xfer/
+cp README.md scripts/*.sh ${TMP}/opt/mcast_xfer/
 
 # back out and copy this script to the module
 popd
