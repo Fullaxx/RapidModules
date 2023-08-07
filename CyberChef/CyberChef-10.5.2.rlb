@@ -1,0 +1,30 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="CyberChef"
+VERS="10.5.2"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+ZIPFILE="${PKGDIR}/${PKG}.zip"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${ZIPFILE} ]; then echo "${ZIPFILE} doesnt exist, exiting..."; exit 1; fi
+mkdir -p ${TMP}/opt/CyberChef
+unzip ${ZIPFILE} -d ${TMP}/opt/CyberChef
+
+# copy this script to the module
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
