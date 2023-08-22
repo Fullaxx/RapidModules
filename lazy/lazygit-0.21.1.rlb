@@ -1,0 +1,35 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="lazygit"
+VERS="0.40.2"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+ARCH="x86_64"
+
+mkdir ${TMP}
+pushd ${TMP}
+curl -L https://github.com/jesseduffield/${NAME}/releases/download/v${VERS}/${NAME}_${VERS}_Linux_${ARCH}.tar.gz | tar zxvf -
+mkdir -p ${TMP}/usr/bin ${TMP}/usr/doc/${PKG}
+mv ${NAME} ${TMP}/usr/bin/
+mv LICENSE README.md ${TMP}/usr/doc/${PKG}/
+chown -R root:root ${TMP}
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
+#rm -rf ${NAME}
+rm -rf ${TMP}
+
+# EOF
