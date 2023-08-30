@@ -13,9 +13,6 @@ TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
-git clone https://github.com/DigitalDevices/dddvb.git ${NAME}
-pushd ${NAME}
-
 # Automatically determine the architecture we're building on:
 if [ -z "${ARCH}" ]; then
   case "$( uname -m )" in
@@ -26,8 +23,11 @@ if [ -z "${ARCH}" ]; then
   esac
 fi
 
+git clone https://github.com/DigitalDevices/dddvb.git ${NAME}
+pushd ${NAME}
+
 # create the TMP directory, compile the code and install to ${TMP}
-make ${MAKEALLCPUS}
+make -j
 mkdir ${TMP}
 make install
 find /lib/modules/ -type f -name '*.ko' -cnewer ${TMP} | xargs tar c | tar x -C ${TMP}
@@ -42,7 +42,7 @@ mkdir -p ${TMP}/usr/src/rlb
 cp $0 ${TMP}/usr/src/rlb
 
 # Package up the modules and clean up
-dir2xzm ${TMP} ${PKG}-${KVERS}-${ARCH}-${PKGREV}.xzm
+dir2xzm ${TMP} 000d-${PKG}-${KVERS}-${ARCH}-${PKGREV}.xzm
 rm -rf ${NAME}
 rm -rf ${TMP}
 

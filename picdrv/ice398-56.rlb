@@ -4,9 +4,10 @@
 
 set -e
 
-NAME="000a-picdrv"
+NAME="picdrv"
 IR="56" # ICE PATCH REVISION
 VERS="3.9.8.${IR}"
+KVERS=`uname -r`
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
@@ -15,17 +16,27 @@ TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
+# Automatically determine the architecture we're building on:
+if [ -z "${ARCH}" ]; then
+  case "$( uname -m )" in
+    #i?86) export ARCH=i486 ;;
+    arm*) export ARCH=arm ;;
+    # Unless ${ARCH} is already set, use uname -m for all other archs:
+       *) export ARCH=$( uname -m ) ;;
+  esac
+fi
+
 if [ ! -e ${ZIPFILE} ]; then echo "${ZIPFILE} doesnt exist, exiting..."; exit 1; fi
 mkdir -p ${TMP}/opt
 unzip ${ZIPFILE} -d ${TMP}/opt
 
 pushd ${TMP}/opt/ice398-${IR}/drv/lnx
-if [[ `uname -r` == 5.* ]]; then sed -s '/isdnif.h/d' -i picdrv.c; fi
+if [[ ${KVERS} == 5.* ]]; then sed -s '/isdnif.h/d' -i picdrv.c; fi
 ./icepic make
 mkdir -p ${TMP}/etc/rc.d/
 cp icepic ${TMP}/etc/rc.d/rc.icepic
-mkdir -p ${TMP}/lib/modules/`uname -r`/extra/
-cp picdrv.ko ${TMP}/lib/modules/`uname -r`/extra/
+mkdir -p ${TMP}/lib/modules/${KVERS}/extra/
+cp picdrv.ko ${TMP}/lib/modules/${KVERS}/extra/
 popd
 
 # fix some random bullshit
@@ -33,7 +44,7 @@ sed -e 's@/var/local/.icereboot@/dev/null@' -i ${TMP}/etc/rc.d/rc.icepic
 
 # Package up the modules and clean up
 rm -rf ${TMP}/opt
-dir2xzm ${TMP} ${PKG}-`uname -r`.xzm
+dir2xzm ${TMP} 000b-${PKG}-${KVERS}-${ARCH}-${PKGREV}.xzm
 rm -rf ${TMP}
 
 # EOF
