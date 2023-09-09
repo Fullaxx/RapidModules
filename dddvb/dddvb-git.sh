@@ -27,7 +27,7 @@ git clone https://github.com/DigitalDevices/dddvb.git ${NAME}
 pushd ${NAME}
 
 # create the TMP directory, compile the code and install to ${TMP}
-make -j
+make -j 1
 mkdir ${TMP}
 make install
 find /lib/modules/ -type f -name '*.ko' -cnewer ${TMP} | xargs tar c | tar x -C ${TMP}

@@ -30,13 +30,13 @@ mkdir -p ${TMP}/opt
 tar xf ${TARBALL} -C ${TMP}/opt
 
 pushd ${TMP}/opt/LinuxSDK/Drivers/Dta/Source/Linux/
-make -j
+make -j 1
 install -D -o root -g root -m 0644 51-dta.rules ${TMP}/etc/udev/rules.d/51-dta.rules
 install -D -o root -g root -m 0644 Dta.ko ${TMP}/lib/modules/${KVERS}/extra/Dta.ko
 popd
 
 pushd ${TMP}/opt/LinuxSDK/Drivers/DtPcie/Source/Linux/
-make -j
+make -j 1
 install -D -o root -g root -m 0644 51-dtpcie.rules ${TMP}/etc/udev/rules.d/51-dtpcie.rules
 install -D -o root -g root -m 0644 DtPcie.ko ${TMP}/lib/modules/${KVERS}/extra/DtPcie.ko
 popd
