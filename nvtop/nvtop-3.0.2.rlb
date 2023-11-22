@@ -1,0 +1,31 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="nvtop"
+VERS="3.0.2"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+APPIMAGE="${PKGDIR}/${PKG}-x86_64.AppImage"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+if [ ! -e ${APPIMAGE} ]; then echo "${APPIMAGE} doesnt exist, exiting..."; exit 1; fi
+
+# install our appimage
+#mkdir -p ${TMP}/usr/bin
+install -D -o root -g root -m 0755 ${APPIMAGE} ${TMP}/usr/bin/nvtop
+
+# back out and copy this script to the module
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-x86_64-${PKGREV}.xzm
+rm -rf ${PKG}
+rm -rf ${TMP}
+
+# EOF
