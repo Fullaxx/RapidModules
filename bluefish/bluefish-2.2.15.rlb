@@ -75,6 +75,7 @@ cp $0 ${TMP}/usr/src/rlb
 # Dont forget zmq.hpp
 mkdir -p ${TMP}/root
 tar xvf ${RLBFDIR}/RLBFILES/bluefish2_configs.tar -C ${TMP}/root
+rm -rf ${TMP}/root/.bluefish/session-2.0
 
 # Make sure this module follows "the rules"
 find ${TMP} -type d | xargs chmod -v 755
