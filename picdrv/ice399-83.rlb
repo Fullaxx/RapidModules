@@ -5,13 +5,13 @@
 set -e
 
 NAME="picdrv"
-IR="56" # ICE PATCH REVISION
-VERS="3.9.8.${IR}"
+IR="83" # ICE PATCH REVISION
+VERS="3.9.9.${IR}"
 KVERS=`uname -r`
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
-ZIPFILE="${PKGDIR}/ice398-${IR}.zip"
+ZIPFILE="${PKGDIR}/ice399-${IR}.zip"
 TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
@@ -30,7 +30,7 @@ if [ ! -e ${ZIPFILE} ]; then echo "${ZIPFILE} doesnt exist, exiting..."; exit 1;
 mkdir -p ${TMP}/opt
 unzip ${ZIPFILE} -d ${TMP}/opt
 
-pushd ${TMP}/opt/ice398-${IR}/drv/lnx
+pushd ${TMP}/opt/ice399-${IR}/drv/lnx
 if [[ ${KVERS} == 5.* ]]; then sed -s '/isdnif.h/d' -i picdrv.c; fi
 ./icepic make
 mkdir -p ${TMP}/etc/rc.d/
