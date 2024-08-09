@@ -32,6 +32,7 @@ unzip ${ZIPFILE} -d ${TMP}/opt
 
 pushd ${TMP}/opt/ice399-${IR}/drv/lnx
 if [[ ${KVERS} == 5.* ]]; then sed -s '/isdnif.h/d' -i picdrv.c; fi
+if [[ ${KVERS} == 6.* ]]; then sed -s 's@static DEFINE_SEMAPHORE@//static DEFINE_SEMAPHORE@' -i picdrv.c; fi
 ./icepic make
 mkdir -p ${TMP}/etc/rc.d/
 cp icepic ${TMP}/etc/rc.d/rc.icepic
