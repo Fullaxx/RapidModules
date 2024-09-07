@@ -31,7 +31,7 @@ cat << EOFF > ${TMP}/usr/bin/vscode
 #!/bin/bash
 
 mkdir -p \${HOME}/vscode
-/opt/vscode/bin/code --user-data-dir \${HOME}/vscode
+/opt/vscode/bin/code --no-sandbox --user-data-dir \${HOME}/vscode
 EOFF
 chmod 0755 ${TMP}/usr/bin/vscode
 
