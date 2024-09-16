@@ -44,6 +44,7 @@ popd
 pushd ${TMP}/opt/ice399-${IR}/test
 ./build.lnx
 install -D -o root -g root -m 0755 test ${TMP}/usr/bin/pic_test
+install -D -o root -g root -m 0755 ${TMP}/opt/ice399-${IR}/lib/libice.so ${TMP}/usr/lib64/libice.so
 popd
 
 # fix some random bullshit
