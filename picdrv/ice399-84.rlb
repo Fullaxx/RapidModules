@@ -42,9 +42,10 @@ cp picdrv.ko ${TMP}/lib/modules/${KVERS}/extra/
 popd
 
 pushd ${TMP}/opt/ice399-${IR}/test
+sed -e 's@cc -pthread -I../inc $flags -o $file $src $ICEROOT/lib/libice.so -lm -ldl@cc -pthread -I../inc $flags -o $file $src ../lib/libice.a -lm@' -i build.lnx
 ./build.lnx
 install -D -o root -g root -m 0755 test ${TMP}/usr/bin/pic_test
-install -D -o root -g root -m 0755 ${TMP}/opt/ice399-${IR}/lib/libice.so ${TMP}/usr/lib64/libice.so
+#install -D -o root -g root -m 0755 ${TMP}/opt/ice399-${IR}/lib/libice.so ${TMP}/usr/lib64/libice.so
 popd
 
 # fix some random bullshit
