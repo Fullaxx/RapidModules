@@ -33,7 +33,7 @@ export ICEROOT="${TMP}/opt/ice399-${IR}"
 
 pushd ${TMP}/opt/ice399-${IR}/drv/lnx
 if [[ ${KVERS} == 5.* ]]; then sed -s '/isdnif.h/d' -i picdrv.c; fi
-if [[ ${KVERS} == 6.* ]]; then sed -s 's@static DEFINE_SEMAPHORE@//static DEFINE_SEMAPHORE@' -i picdrv.c; fi
+if [[ ${KVERS} == 6.1.* ]]; then sed -s 's@#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,0,0)@#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,4,0)@' -i picdrv.c; fi
 ./icepic make
 mkdir -p ${TMP}/etc/rc.d/
 cp icepic ${TMP}/etc/rc.d/rc.icepic
@@ -46,6 +46,11 @@ sed -e 's@cc -pthread -I../inc $flags -o $file $src $ICEROOT/lib/libice.so -lm -
 ./build.lnx
 install -D -o root -g root -m 0755 test ${TMP}/usr/bin/pic_test
 #install -D -o root -g root -m 0755 ${TMP}/opt/ice399-${IR}/lib/libice.so ${TMP}/usr/lib64/libice.so
+popd
+
+pushd ${TMP}/opt/ice399-${IR}/dat
+mkdir -p ${TMP}/usr/share/icexxx/dat
+cp -a * ${TMP}/usr/share/icexxx/dat/
 popd
 
 # fix some random bullshit
