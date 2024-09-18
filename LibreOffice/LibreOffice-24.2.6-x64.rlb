@@ -5,6 +5,7 @@ set -e
 NAME="LibreOffice"
 AFILE="LO"
 VERS="24.2.6"
+LOMAJVERS=`echo "${VERS}" | cut -d. -f1-2`
 ARCH="x86-64"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
@@ -48,16 +49,16 @@ EOFF
 chmod 0755 ${TMP}/usr/bin/${AFILE}
 
 # Symlink the libreoffice binary
-( cd ${TMP}/usr/bin; ln -s libreoffice?.? libreoffice )
+( cd ${TMP}/usr/bin; ln -s libreoffice${LOMAJVERS} libreoffice )
 
 # Symlink the libreoffice main svg
-( cd ${TMP}/usr/share/icons/hicolor/scalable/apps; ln -s libreoffice?.?-main.svg libreoffice-main.svg )
+( cd ${TMP}/usr/share/icons/hicolor/scalable/apps; ln -s libreoffice${LOMAJVERS}-main.svg libreoffice-main.svg )
 
 # Symlink the libreoffice main pngs
 #for ICONDIR in 16x16 32x32 48x48 128x128 256x256 512x512;
 
 for ICONSIZE in `find ${TMP}/usr/share/icons/hicolor -name *.png | cut -d/ -f 8 | sort -u`;
-  do ( cd ${TMP}/usr/share/icons/hicolor/${ICONSIZE}/apps; ln -s libreoffice?.?-main.png libreoffice-main.png );
+  do ( cd ${TMP}/usr/share/icons/hicolor/${ICONSIZE}/apps; ln -s libreoffice${LOMAJVERS}-main.png libreoffice-main.png );
 done
 
 popd
