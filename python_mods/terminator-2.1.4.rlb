@@ -62,6 +62,10 @@ cp AUTHORS COPYING *.txt *.md ${TMP}/usr/doc/${PKG}/
 # Remove locales
 rm -rf ${TMP}/usr/share/locale
 
+# Provide empty config file
+mkdir -p ${TMP}/etc/xdg/terminator
+touch ${TMP}/etc/xdg/terminator/config
+
 # back out and copy this script to the module
 popd
 mkdir -p ${TMP}/usr/src/rlb
