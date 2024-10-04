@@ -63,7 +63,7 @@ make install DESTDIR=${TMP}
 mkdir -p ${TMP}/usr/doc
 mv ${TMP}/usr/share/cgdb ${TMP}/usr/doc/
 cp AUTHORS COPYING NEWS README ${TMP}/usr/doc/cgdb/
-cp ${RLBFDIR}/RLBFILES/cgdb.pdf ${TMP}/usr/doc/cgdb/
+cp ${RLBFDIR}/RLBFILES/cgdb-${VERS}.pdf ${TMP}/usr/doc/cgdb/
 rmdir ${TMP}/usr/share
 
 # back out and copy this script to the module

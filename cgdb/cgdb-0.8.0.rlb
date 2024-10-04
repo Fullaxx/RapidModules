@@ -5,16 +5,19 @@
 set -e
 
 NAME="cgdb"
-VERS=`date "+%Y%m%d"`
+VERS="0.8.0"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${PKG}.tar.gz"
 RLBFDIR=`dirname $0`
 TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
 
-git clone https://github.com/cgdb/cgdb.git ${NAME}
-pushd ${NAME}
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+tar xvf ${TARBALL}
+pushd ${PKG}
 
 # Automatically determine the architecture we're building on:
 if [ -z "${ARCH}" ]; then
@@ -40,8 +43,6 @@ else
   SLKCFLAGS="-O2"
 fi
 
-./autogen.sh
-
 # Fix readline detection issue
 sed -e s@ac_cv_rl_version=\'0.0\'@ac_cv_rl_version=\'7.0\'@ -i configure
 
@@ -63,19 +64,35 @@ make install DESTDIR=${TMP}
 
 # Documentation
 mkdir -p ${TMP}/usr/doc
-mv ${TMP}/usr/share/cgdb ${TMP}/usr/doc/${PKG}
-cp AUTHORS COPYING ChangeLog FAQ NEWS *.md *.txt ${TMP}/usr/doc/${PKG}/
-cp ${RLBFDIR}/RLBFILES/cgdb-0.8.0.pdf ${TMP}/usr/doc/${PKG}/
+mv ${TMP}/usr/share/cgdb ${TMP}/usr/doc/
+cp AUTHORS COPYING NEWS ${TMP}/usr/doc/cgdb/
+cp ${RLBFDIR}/RLBFILES/cgdb-${VERS}.pdf ${TMP}/usr/doc/cgdb/
 rmdir ${TMP}/usr/share
 
 # back out and copy this script to the module
 popd
 mkdir -p ${TMP}/usr/src/rlb
-cp $0 ${TMP}/usr/src/rlb/
+cp $0 ${TMP}/usr/src/rlb
+
+# Make sure this module follows "the rules"
+find ${TMP} -type d | xargs chmod -v 755
+MANDIR=`find ${TMP} -type d -name man`
+if [ x"${MANDIR}" != "x" ]; then
+  find ${MANDIR} -type l -name "*.gz" | xargs -r gunzip -f
+  find ${MANDIR} ! -type l -name "*.gz" | xargs -r gunzip
+fi
+find ${TMP} -type f | xargs file | grep ELF | cut -f1 -d: | xargs -r strip --strip-unneeded
+
+# New Rules: No longer keep .la files
+for PKGLIBDIR in ${TMP}/lib* ${TMP}/usr/lib*; do
+  if [ -d ${PKGLIBDIR} ]; then
+    find ${PKGLIBDIR} -type f -name "*.la" | xargs -r rm
+  fi
+done
 
 # Package up the modules and clean up
 dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
-rm -rf ${NAME}
+rm -rf ${PKG}
 rm -rf ${TMP}
 
 # EOF
