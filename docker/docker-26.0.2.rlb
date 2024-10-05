@@ -5,7 +5,7 @@
 set -e
 
 NAME="docker"
-VERS="25.0.5"
+VERS="26.0.2"
 DBXVERS="0.17.1"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
