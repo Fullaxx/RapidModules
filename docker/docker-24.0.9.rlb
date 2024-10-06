@@ -6,8 +6,8 @@ set -e
 
 NAME="docker"
 VERS="24.0.9"
-DCVERS="2.26.1"
-DBXVERS="0.13.1"
+DCVERS="2.29.7"
+DBXVERS="0.17.1"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 TMP="/tmp/${NAME}-mod-$$"

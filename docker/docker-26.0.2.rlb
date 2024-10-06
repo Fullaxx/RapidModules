@@ -6,6 +6,7 @@ set -e
 
 NAME="docker"
 VERS="26.0.2"
+DCVERS="2.29.7"
 DBXVERS="0.17.1"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
@@ -22,6 +23,10 @@ mkdir -p ${TMP}/usr ${TMP}/etc/rc.d
 tar xvf ${DTARBALL} -C ${TMP}/usr
 rm ${DTARBALL}
 mv ${TMP}/usr/docker ${TMP}/usr/bin
+
+# Download docker-compose
+DCURL="https://github.com/docker/compose/releases/download/v${DCVERS}/docker-compose-linux-x86_64"
+curl -L ${DCURL} -o ${TMP}/usr/bin/docker-compose
 
 # Download bash-completion for docker
 DBCURL="https://raw.githubusercontent.com/docker/cli/master/contrib/completion/bash/docker"
@@ -99,13 +104,6 @@ esac
 
 EOFF
 chmod 0755 ${TMP}/etc/rc.d/rc.rl_docker
-
-cat << EOFF >${TMP}/usr/bin/docker-compose
-#!/bin/bash
-
-docker compose \$@
-EOFF
-chmod 0755 ${TMP}/usr/bin/docker-compose
 
 # https://docs.docker.com/registry/insecure/
 # If we dont have certain root certs, allow pull over HTTP
