@@ -1,0 +1,11 @@
+--- picdrv.c	2024-09-27 18:57:05.000000000 +0000
++++ picdrv.c.new	2024-10-08 19:51:50.264530242 +0000
+@@ -339,7 +339,7 @@
+ static int ndma=0, nmap=0, nram=0, icepic_count=0;
+ static int cstat;
+ static struct semaphore icepic_mutex;
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,0,0)
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,4,0)
+ static DEFINE_SEMAPHORE (icepic_mutex,1);
+ #elif LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,37)
+ static DEFINE_SEMAPHORE (icepic_mutex);
