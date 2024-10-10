@@ -1,0 +1,15 @@
+--- picdrv.c	2024-10-10 19:26:58.843853964 +0000
++++ picdrv.c.new	2024-10-10 19:30:21.911280010 +0000
+@@ -1234,7 +1234,11 @@
+   }
+   return -EAGAIN;
+   GOTIT:
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(6,0,0)
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,3,0)
++  int_u4 tmp_flag = vma->vm_flags;
++  tmp_flag |= VM_IO;
++  vma_flags_set(vma,tmp_flag);
++#else
+   vma->vm_flags |= VM_IO;
+ #endif
+   if (nmap<MAXIOBUF) {

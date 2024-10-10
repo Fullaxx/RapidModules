@@ -35,6 +35,7 @@ export ICEROOT="${TMP}/opt/ice399-${IR}"
 
 pushd ${TMP}/opt/ice399-${IR}/drv/lnx
 patch picdrv.c ${PATCHDIR}/01-399-semaphore-640.diff
+patch picdrv.c ${PATCHDIR}/02-399-vmio-630.diff
 ./icepic make
 mkdir -p ${TMP}/etc/rc.d/
 cp icepic ${TMP}/etc/rc.d/rc.icepic
