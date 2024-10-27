@@ -1,0 +1,49 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="dektec"
+VERS="2024.09.0"
+KVERS=`uname -r`
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/LinuxSDK_v${VERS}.tar.gz"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+# Automatically determine the architecture we're building on:
+if [ -z "${ARCH}" ]; then
+  case "$( uname -m )" in
+    #i?86) export ARCH=i486 ;;
+    arm*) export ARCH=arm ;;
+    # Unless ${ARCH} is already set, use uname -m for all other archs:
+       *) export ARCH=$( uname -m ) ;;
+  esac
+fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+mkdir -p ${TMP}/opt
+tar xf ${TARBALL} -C ${TMP}/opt
+
+pushd ${TMP}/opt/LinuxSDK/Drivers/Dta/Source/Linux/
+make -j 1
+install -D -o root -g root -m 0644 51-dta.rules ${TMP}/etc/udev/rules.d/51-dta.rules
+install -D -o root -g root -m 0644 Dta.ko ${TMP}/lib/modules/${KVERS}/extra/Dta.ko
+popd
+
+pushd ${TMP}/opt/LinuxSDK/Drivers/DtPcie/Source/Linux/
+make -j 1
+install -D -o root -g root -m 0644 51-dtpcie.rules ${TMP}/etc/udev/rules.d/51-dtpcie.rules
+install -D -o root -g root -m 0644 DtPcie.ko ${TMP}/lib/modules/${KVERS}/extra/DtPcie.ko
+popd
+
+# Package up the modules and clean up
+rm -rf ${TMP}/opt
+dir2xzm ${TMP} 000c-${PKG}-${KVERS}-${ARCH}-${PKGREV}.xzm
+rm -rf ${TMP}
+
+# EOF
