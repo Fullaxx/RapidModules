@@ -1,0 +1,33 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="jq"
+VERS="1.7.1"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+ARCH="x86_64"
+
+mkdir -p ${TMP}/usr/bin
+pushd ${TMP}/usr/bin
+curl -L https://github.com/jqlang/jq/releases/download/jq-${VERS}/jq-linux-amd64 -o jq
+chmod 0755 jq
+chown -R root:root ${TMP}
+
+# back out and copy this script to the module
+popd
+mkdir -p ${TMP}/usr/src/rlb
+cp $0 ${TMP}/usr/src/rlb/
+
+# Package up the modules and clean up
+dir2xzm ${TMP} ${PKG}-${ARCH}-${PKGREV}.xzm
+#rm -rf ${NAME}
+rm -rf ${TMP}
+
+# EOF
