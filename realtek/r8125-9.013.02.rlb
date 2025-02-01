@@ -25,7 +25,7 @@ popd
 
 # Package up the modules and clean up
 rm -rf ${TMP}/opt
-dir2xzm ${TMP} ${PKG}-`uname -r`.xzm
+dir2xzm ${TMP} 000r-kmods-${PKG}-`uname -r`.xzm
 rm -rf ${TMP}
 
 # EOF
