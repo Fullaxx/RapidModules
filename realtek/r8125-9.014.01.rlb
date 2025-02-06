@@ -1,0 +1,31 @@
+#!/bin/bash
+# Brett Kuskie
+# fullaxx@gmail.com
+
+set -e
+
+NAME="r8125"
+VERS="9.014.01"
+PKG="${NAME}-${VERS}"
+PKGREV=${PKGREV:-rev}
+PKGDIR=${PKGDIR:-.}
+TARBALL="${PKGDIR}/${PKG}.tar.bz2"
+TMP="/tmp/${NAME}-mod-$$"
+if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
+if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
+
+if [ ! -e ${TARBALL} ]; then echo "${TARBALL} doesnt exist, exiting..."; exit 1; fi
+mkdir -p ${TMP}/opt
+tar xf ${TARBALL} -C ${TMP}/opt
+
+pushd ${TMP}/opt/${PKG}
+make
+install -D -o root -g root -m 0644 src/r8125.ko ${TMP}/lib/modules/`uname -r`/kernel/drivers/net/ethernet/realtek/r8125.ko
+popd
+
+# Package up the modules and clean up
+rm -rf ${TMP}/opt
+dir2xzm ${TMP} 000r-kmods-${PKG}-`uname -r`.xzm
+rm -rf ${TMP}
+
+# EOF
