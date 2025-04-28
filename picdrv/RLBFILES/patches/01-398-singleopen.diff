@@ -1,0 +1,14 @@
+--- picdrv.c	2022-09-12 13:59:46.000000000 +0000
++++ picdrv.c.new	2025-04-28 21:11:10.467963905 +0000
+@@ -217,7 +217,11 @@
+   return 0;
+ }
+ static int icepic_info_open_fs (struct inode *inode, struct file *file) {
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,14,0)
++  return single_open (file,icepic_info_seq_show,inode);
++#else
+   return single_open (file,icepic_info_seq_show,PDE_DATA(inode));
++#endif
+ }
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,5,0)
+ static const struct proc_ops icepic_info_fops = {
