@@ -3,7 +3,7 @@
 set -e
 
 NAME="VirtualBox"
-VERS="7.0.22"
+VERS="7.0.26"
 PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
