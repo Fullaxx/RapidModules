@@ -10,7 +10,7 @@ PKG="${NAME}-${VERS}"
 PKGREV=${PKGREV:-rev}
 PKGDIR=${PKGDIR:-.}
 TARBALL="${PKGDIR}/${PKG}.tar.gz"
-# RLBFDIR=`dirname $0`
+RLBFDIR=`dirname $0`
 TMP="/tmp/${NAME}-mod-$$"
 if [ -e ${TMP} ]; then echo "${TMP} exists, exiting..." >&2; exit 1; fi
 if [ `id -u` != "0" ]; then echo "Got Root?"; exit 1; fi
@@ -62,9 +62,9 @@ cp AUTHORS COPYING *.txt *.md ${TMP}/usr/doc/${PKG}/
 # Remove locales
 rm -rf ${TMP}/usr/share/locale
 
-# Provide empty config file
+# Provide default config file
 mkdir -p ${TMP}/etc/xdg/terminator
-touch ${TMP}/etc/xdg/terminator/config
+cp -av ${RLBFDIR}/RLBFILES/terminator_config ${TMP}/etc/xdg/terminator/config
 
 # back out and copy this script to the module
 popd
