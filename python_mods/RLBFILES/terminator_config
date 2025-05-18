@@ -2,7 +2,14 @@
 [keybindings]
 [profiles]
   [[default]]
-    font = Liberation Mono 10
+    cursor_shape = ibeam
+    cursor_fg_color = "#2ec27e"
+    cursor_bg_color = "#aaaaaa"
+    cursor_color_default = False
+    font = Monospace 9
+    show_titlebar = False
+    scrollbar_position = hidden
+    scrollback_infinite = True
     use_system_font = False
 [layouts]
   [[default]]

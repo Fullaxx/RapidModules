@@ -66,6 +66,9 @@ rm -rf ${TMP}/usr/share/locale
 mkdir -p ${TMP}/etc/xdg/terminator
 cp -av ${RLBFDIR}/RLBFILES/terminator_config ${TMP}/etc/xdg/terminator/config
 
+# Fix shebang line
+sed -e 's@#!python@#!/usr/bin/python3@' -i ${TMP}/usr/bin/terminator
+
 # back out and copy this script to the module
 popd
 mkdir -p ${TMP}/usr/src/rlb
